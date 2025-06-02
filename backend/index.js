@@ -28,14 +28,14 @@ const BASE_PATH = config.BASE_PATH;
 
 // Apply CORS first with pre-flight handling
 app.options("*", cors({
-  origin: "https://opus-sync.netlify.app",
+  origin: "https://opus-sync.vercel.app",
   credentials: true,
   methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
   allowedHeaders: "Content-Type, Authorization",
 }));
 app.use(
   cors({
-    origin: "https://opus-sync.netlify.app",
+    origin: "https://opus-sync.vercel.app",
     credentials: true,
   })
 );
