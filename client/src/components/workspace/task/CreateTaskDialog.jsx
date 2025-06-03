@@ -36,7 +36,7 @@ const CreateTaskDialog = ({ onClose, workspaceId, task = null, onTaskProcessed, 
       setDescription("");
       setProject(defaultProjectId || ""); // Use defaultProjectId in create mode
       setAssignee("");
-      setDueDate("2025-06-01");
+      setDueDate("");
       setStatus("TODO");
       setPriority("MEDIUM");
     }
@@ -93,7 +93,7 @@ const CreateTaskDialog = ({ onClose, workspaceId, task = null, onTaskProcessed, 
     setErrorMessage("");
     setSuccessMessage("");
 
-    if (!title || !project || !assignee || !dueDate || !status || !priority) {
+    if (!title ||!description|| !project || !assignee || !dueDate || !status || !priority) {
       setErrorMessage("All fields marked with * are required.");
       return;
     }
@@ -191,7 +191,7 @@ const CreateTaskDialog = ({ onClose, workspaceId, task = null, onTaskProcessed, 
           </div>
 
           <div>
-            <FieldLabel htmlFor="description">Task Description <span className="text-xs text-gray-400">(Optional)</span></FieldLabel>
+            <FieldLabel htmlFor="description" required>Task Description </FieldLabel>
             <textarea
               id="description"
               className="mt-1 flex min-h-[80px] w-full rounded-lg border border-gray-300 bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-700 focus-visible:border-gray-700 disabled:cursor-not-allowed disabled:opacity-50"
@@ -203,7 +203,7 @@ const CreateTaskDialog = ({ onClose, workspaceId, task = null, onTaskProcessed, 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-5">
             <div>
               <FieldLabel htmlFor="project" required>Project</FieldLabel>
-              <select id="project" value={project} onChange={(e) => setProject(e.target.value)} disabled={loadingProjects || isEditMode}
+              <select id="project" value={project} onChange={(e) => setProject(e.target.value)} disabled={loadingProjects || isEditMode || defaultProjectId}
                 className="mt-1 flex h-11 w-full items-center justify-between rounded-lg border border-gray-300 bg-transparent px-3 py-2 text-sm shadow-sm ring-offset-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-700 focus:border-gray-700 disabled:cursor-not-allowed disabled:opacity-50">
                 <option value="" disabled>{loadingProjects ? "Loading projects..." : "Select a project"}</option>
                 {!loadingProjects && projects.length === 0 && <option value="" disabled>No projects available</option>}

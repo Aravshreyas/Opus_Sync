@@ -7,7 +7,7 @@ import CreateTaskDialog from "../../components/workspace/task/CreateTaskDialog";
 import CreateProjectDialog from "../../components/workspace/project/CreateProjectDialog";
 import {
   Plus, X, Loader2, AlertTriangle, Info, CalendarDays, FileText,
-  UserCircle, Clock, Briefcase, Edit,
+  UserCircle, Clock, Briefcase, Edit,FolderKanban,ChartLine,
 } from "lucide-react";
 
 const Projects = () => {
@@ -58,7 +58,7 @@ const Projects = () => {
     } finally {
       setLoading(false);
     }
-  }, [projectId, workspaceId]); // Removed isCreateTaskDialogOpen and isEditProjectOpen
+  }, [projectId, workspaceId,isEditProjectOpen,isCreateTaskDialogOpen]);
 
   // Fetch tasks to calculate progress
   const fetchTasksForProgress = useCallback(async () => {
@@ -218,7 +218,7 @@ const Projects = () => {
       <section className="space-y-8">
         <div className="bg-white p-6 md:p-8 rounded-2xl shadow-xl">
           <h2 className="text-xl font-semibold text-gray-800 mb-6 flex items-center gap-2 border-b border-gray-200 pb-3">
-            <Info size={22} className="text-indigo-500" /> Project Overview
+            <FolderKanban size={22} className="text-indigo-500" /> Project Overview
           </h2>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Left Column: Details */}
@@ -293,7 +293,7 @@ const Projects = () => {
             {/* Right Column: Analytics Cards */}
             <div className="lg:col-span-2">
               <h3 className="text-md font-semibold text-gray-700 mb-4 flex items-center gap-2">
-                <Info size={18} className="text-teal-500" /> Key Metrics
+                <ChartLine size={18} className="text-teal-500" /> Key Metrics
               </h3>
               <ProjectAnalytics projectId={projectId} refreshKey={refreshTaskTableKey} />
             </div>

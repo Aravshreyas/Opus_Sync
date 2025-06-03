@@ -1,4 +1,3 @@
-
 const mongoose = require("mongoose");
 const ProjectModel = require("../models/project.model");
 const TaskModel = require("../models/task.model");
@@ -6,32 +5,31 @@ const { NotFoundException } = require("../utils/appError");
 const { TaskStatusEnum } = require("../enums/task.enum");
 
 const createProjectService = async (userId, workspaceId, body) => {
-    const project = new ProjectModel({
-        ...(body.emoji && { emoji: body.emoji }),
+    const projectData = {
         name: body.name,
         description: body.description,
         workspace: workspaceId,
         createdBy: userId,
-    });
+    };
 
+    if (body.emoji !== undefined) {
+        projectData.emoji = body.emoji;
+    }
+
+    const project = new ProjectModel(projectData);
     await project.save();
-
     return { project };
 };
 
 const getProjectsInWorkspaceService = async (workspaceId, pageSize, pageNumber) => {
     const totalCount = await ProjectModel.countDocuments({ workspace: workspaceId });
-
     const skip = (pageNumber - 1) * pageSize;
-
     const projects = await ProjectModel.find({ workspace: workspaceId })
         .skip(skip)
         .limit(pageSize)
         .populate("createdBy", "_id name profilePicture -password")
         .sort({ createdAt: -1 });
-
     const totalPages = Math.ceil(totalCount / pageSize);
-
     return { projects, totalCount, totalPages, skip };
 };
 
@@ -46,7 +44,6 @@ const getProjectByIdAndWorkspaceIdService = async (workspaceId, projectId) => {
             "Project not found or does not belong to the specified workspace"
         );
     }
-
     return { project };
 };
 
@@ -60,7 +57,6 @@ const getProjectAnalyticsService = async (workspaceId, projectId) => {
     }
 
     const currentDate = new Date();
-
     const taskAnalytics = await TaskModel.aggregate([
         {
             $match: {
@@ -90,19 +86,16 @@ const getProjectAnalyticsService = async (workspaceId, projectId) => {
     ]);
 
     const _analytics = taskAnalytics[0];
-
     const analytics = {
         totalTasks: _analytics.totalTasks[0]?.count || 0,
         overdueTasks: _analytics.overdueTasks[0]?.count || 0,
         completedTasks: _analytics.completedTasks[0]?.count || 0,
     };
-
     return { analytics };
 };
 
 const updateProjectService = async (workspaceId, projectId, body) => {
     const { name, emoji, description } = body;
-
     const project = await ProjectModel.findOne({
         _id: projectId,
         workspace: workspaceId,
@@ -114,12 +107,11 @@ const updateProjectService = async (workspaceId, projectId, body) => {
         );
     }
 
-    if (emoji) project.emoji = emoji;
-    if (name) project.name = name;
-    if (description) project.description = description;
+    if (name !== undefined) project.name = name;
+    if (description !== undefined) project.description = description;
+    if (emoji !== undefined) project.emoji = emoji;
 
     await project.save();
-
     return { project };
 };
 
@@ -136,9 +128,7 @@ const deleteProjectService = async (workspaceId, projectId) => {
     }
 
     await project.deleteOne();
-
     await TaskModel.deleteMany({ project: project._id });
-
     return project;
 };
 

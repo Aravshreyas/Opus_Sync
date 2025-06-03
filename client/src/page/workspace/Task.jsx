@@ -72,7 +72,7 @@ export default function Tasks() {
         </div>
       </div>
       <div>
-        <TaskTable tasks={tasks} workspaceId={workspaceId} projectId={null} onTaskProcessed={handleTaskProcessed} />
+        <TaskTable tasks={tasks} workspaceId={workspaceId} projectId={null} onTaskProcessed={handleTaskProcessed} isDialogOpen={isDialogOpen}/>
       </div>
 
       {isDialogOpen && (

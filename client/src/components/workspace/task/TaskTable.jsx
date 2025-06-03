@@ -32,7 +32,7 @@ import CreateTaskDialog from "./CreateTaskDialog";
 import { useNavigate } from "react-router-dom";
 import UserAvatar from "../../../components/common/UserAvatar";
 
-const TaskTable = ({ workspaceId: propWorkspaceId, projectId: propProjectId, onTaskUpdated }) => {
+const TaskTable = ({ workspaceId: propWorkspaceId, projectId: propProjectId, onTaskUpdated,isDialogOpen }) => {
   const [tasks, setTasks] = useState([]);
   const [filteredTasks, setFilteredTasks] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -131,7 +131,7 @@ const TaskTable = ({ workspaceId: propWorkspaceId, projectId: propProjectId, onT
     } finally {
       setIsLoading(false);
     }
-  }, [actualWorkspaceId, propProjectId]);
+  }, [actualWorkspaceId, propProjectId,isDialogOpen]);
 
   useEffect(() => {
     fetchTasks();
@@ -617,7 +617,7 @@ const TaskTable = ({ workspaceId: propWorkspaceId, projectId: propProjectId, onT
                 </div>
               )}
             </div>
-            {!propProjectId && (
+            
               <div className="relative">
                 <button
                   onClick={() => toggleDropdown("assignedTo")}
@@ -658,8 +658,8 @@ const TaskTable = ({ workspaceId: propWorkspaceId, projectId: propProjectId, onT
                   </div>
                 )}
               </div>
-            )}
-            {!propProjectId && (
+            
+           
               <div className="relative">
                 <button
                   onClick={() => toggleDropdown("projects")}
@@ -700,7 +700,7 @@ const TaskTable = ({ workspaceId: propWorkspaceId, projectId: propProjectId, onT
                   </div>
                 )}
               </div>
-            )}
+            
           </div>
         </div>
         <div className="relative columns-dropdown-button">

@@ -1,5 +1,4 @@
-
-const  asyncHandler  = require("../middlewares/asyncHandler.middleware");
+const asyncHandler = require("../middlewares/asyncHandler.middleware");
 const { HTTPSTATUS } = require("../config/http.config");
 const { getMemberRoleInWorkspace } = require("../services/member.service");
 const { roleGuard } = require("../utils/roleGuard");
@@ -15,7 +14,7 @@ const {
 const { BadRequestException, UnauthorizedException } = require("../utils/appError");
 
 const createProjectController = asyncHandler(async (req, res) => {
-    const { name, description } = req.body; // Assuming body has name, description
+    const { name, description, emoji } = req.body;
     const workspaceId = req.params.workspaceId;
 
     if (!name) {
@@ -33,7 +32,8 @@ const createProjectController = asyncHandler(async (req, res) => {
     const { role } = await getMemberRoleInWorkspace(userId, workspaceId);
     roleGuard(role, [Permissions.CREATE_PROJECT]);
 
-    const { project } = await createProjectService(userId, workspaceId, { name, description });
+    const projectData = { name, description, emoji };
+    const { project } = await createProjectService(userId, workspaceId, projectData);
 
     return res.status(HTTPSTATUS.CREATED).json({
         message: "Project created successfully",
@@ -131,7 +131,7 @@ const getProjectAnalyticsController = asyncHandler(async (req, res) => {
 });
 
 const updateProjectController = asyncHandler(async (req, res) => {
-    const { name, description } = req.body; // Assuming body has name, description
+    const { name, description, emoji } = req.body;
     const projectId = req.params.id;
     const workspaceId = req.params.workspaceId;
 
@@ -140,9 +140,6 @@ const updateProjectController = asyncHandler(async (req, res) => {
     }
     if (!workspaceId) {
         throw BadRequestException("Workspace ID is required");
-    }
-    if (!name) {
-        throw BadRequestException("Name is required");
     }
 
     const userId = req.user ? req.user._id : null;
@@ -153,7 +150,10 @@ const updateProjectController = asyncHandler(async (req, res) => {
     const { role } = await getMemberRoleInWorkspace(userId, workspaceId);
     roleGuard(role, [Permissions.EDIT_PROJECT]);
 
-    const { project } = await updateProjectService(workspaceId, projectId, { name, description });
+    const projectUpdateData = { name, description, emoji };
+    Object.keys(projectUpdateData).forEach(key => projectUpdateData[key] === undefined && delete projectUpdateData[key]);
+
+    const { project } = await updateProjectService(workspaceId, projectId, projectUpdateData);
 
     return res.status(HTTPSTATUS.OK).json({
         message: "Project updated successfully",
