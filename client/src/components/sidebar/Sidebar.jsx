@@ -222,10 +222,11 @@ const Sidebar = ({ isDesktopCollapsed, isMobileOpen, closeMobileSidebar }) => {
     } catch (error) {
       console.error("Logout API call failed:", error);
     } finally {
+      sessionStorage.removeItem("accessToken");
       if (authContextLogout) authContextLogout();
       else setUser(null);
       setIsLogoutConfirmOpen(false);
-      navigate("/login");
+      navigate("/");
     }
   };
   
