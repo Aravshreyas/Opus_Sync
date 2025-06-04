@@ -17,39 +17,43 @@ const generateToken = (user) => {
 };
 
 const googleLoginCallback = asyncHandler(async (req, res) => {
-    if (!req.user) {
-        return res.status(HTTPSTATUS.UNAUTHORIZED).json({ message: "Google authentication failed" });
-    }
-    const currentWorkspace = req.user.currentWorkspace;
-    if (!currentWorkspace) {
-        return res.status(HTTPSTATUS.BAD_REQUEST).json({ message: "No workspace assigned" });
-    }
-    const token = generateToken(req.user);
-    
-    res.cookie("jwt", token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "None",
-        maxAge: 60 * 60 * 1000
-    });
+  if (!req.user) {
+    return res.status(HTTPSTATUS.UNAUTHORIZED).json({ message: "Google authentication failed" });
+  }
 
-    if (!currentWorkspace) {
-      return res.redirect(
-        `${config.FRONTEND_GOOGLE_CALLBACK_URL}?status=failure`
-      );
-    }
-    
-     res.status(HTTPSTATUS.OK).json({
-        message: "Google login successful",
-        token,
-        user: req.user.omitPassword(),
-        workspaceId: currentWorkspace
-    });
-    return res.redirect(
-      `${config.FRONTEND_ORIGIN}/workspace/${currentWorkspace}`
-    );
+  const currentWorkspace = req.user.currentWorkspace;
+  if (!currentWorkspace) {
+    return res.status(HTTPSTATUS.BAD_REQUEST).json({ message: "No workspace assigned" });
+  }
 
-});
+  const token = generateToken(req.user);
+
+  res.cookie("jwt", token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "None",
+    maxAge: 60 * 60 * 1000,
+  });
+
+  const ua = req.headers['user-agent'] || "";
+  const isSafari = /^((?!chrome|android).)*safari/i.test(ua);
+  const isAppleDevice = /iPad|iPhone|iPod|Macintosh/.test(ua) && isSafari;
+
+  if (isAppleDevice) {
+    // iOS/macOS Safari -> respond with JSON for frontend handling
+    return res.redirect(`${config.FRONTEND_ORIGIN}/google-oauth-success#token=${token}&workspaceId=${currentWorkspace}`);
+
+    return res.status(HTTPSTATUS.OK).json({
+      message: "Google login successful",
+      token,
+      user: req.user.omitPassword(),
+      workspaceId: currentWorkspace,
+    });
+  } else {
+    // Other devices -> redirect directly from backend
+    return res.redirect(`${config.FRONTEND_ORIGIN}/workspace/${currentWorkspace}`);
+  }
+})
 
 const registerUserController = asyncHandler(async (req, res) => {
     const { email, password, name } = req.body; // Assuming these are required fields
