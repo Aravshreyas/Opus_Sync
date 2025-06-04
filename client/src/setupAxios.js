@@ -1,22 +1,30 @@
-// src/setupAxios.js
 import axios from "axios";
 
-// Helper to detect iOS or macOS Safari
+// Helper to detect iOS/macOS Safari
 const isAppleDevice = () => {
-  return (
-    /iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent) &&
-    !window.MSStream
-  );
+  const ua = navigator.userAgent;
+  const isSafari = /^((?!chrome|android).)*safari/i.test(ua);
+  const isApple = /iPad|iPhone|iPod|Macintosh/.test(ua) && isSafari;
+  console.log("UserAgent:", ua);
+  console.log("Is Apple Device:", isApple);
+  return isApple;
 };
 
-// Monkey-patch the default axios instance
+console.log("Setting axios baseURL:", import.meta.env.VITE_BACKEND_URL);
 axios.defaults.baseURL = import.meta.env.VITE_BACKEND_URL;
-axios.defaults.withCredentials = !isAppleDevice(); // Cookies for non-iOS/mac
 
-// Add token in header for iOS/macOS fallback
+const appleDevice = isAppleDevice();
+axios.defaults.withCredentials = !appleDevice;
+
+console.log("Axios withCredentials default:", axios.defaults.withCredentials);
+
+// Add Authorization header if Apple (fallback to sessionStorage)
 axios.interceptors.request.use((config) => {
-  if (isAppleDevice()) {
-    const token = localStorage.getItem("accessToken");
+  console.log("Intercepting request to:", config.url);
+  console.log("Current withCredentials:", config.withCredentials);
+  if (appleDevice) {
+    const token = sessionStorage.getItem("accessToken");
+    console.log("Apple device detected, token from sessionStorage:", token);
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }

@@ -25,7 +25,7 @@ const RecentMembers = () => {
       try {
         const response = await axios.get(
           `${import.meta.env.VITE_BACKEND_URL}/workspace/members/${workspaceId}`,
-          { withCredentials: true } // Include cookies for authentication
+          // { withCredentials: true } // Include cookies for authentication
         );
         console.log("API Response:", response.data);
         // Assuming the API returns an object with a 'members' array,

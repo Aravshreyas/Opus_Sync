@@ -41,7 +41,7 @@ const Projects = () => {
     try {
       const response = await axios.get(
         `${import.meta.env.VITE_BACKEND_URL}/project/${projectId}/workspace/${workspaceId}`,
-        { withCredentials: true }
+        // { withCredentials: true }
       );
       console.log("Project details response:", response.data);
       if (response.data && response.data.project) {
@@ -73,7 +73,7 @@ const Projects = () => {
       // Use a more specific endpoint to fetch tasks for the project
       const response = await axios.get(
         `${import.meta.env.VITE_BACKEND_URL}/task/project/${projectId}/all`,
-        { withCredentials: true }
+        // { withCredentials: true }
       );
       const tasks = response.data.tasks || [];
       console.log("Tasks response for progress:", tasks);
@@ -95,7 +95,7 @@ const Projects = () => {
       try {
         const response = await axios.get(
           `${import.meta.env.VITE_BACKEND_URL}/task/workspace/${workspaceId}/all`,
-          { withCredentials: true }
+          // { withCredentials: true }
         );
         const tasks = response.data.tasks || [];
         console.log("Fallback tasks response for progress:", tasks);

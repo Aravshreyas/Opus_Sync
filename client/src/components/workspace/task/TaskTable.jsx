@@ -116,7 +116,9 @@ const TaskTable = ({ workspaceId: propWorkspaceId, projectId: propProjectId, onT
     setError(null);
     try {
       const endpoint = `${import.meta.env.VITE_BACKEND_URL}/task/workspace/${actualWorkspaceId}/all`;
-      const response = await axios.get(endpoint, { withCredentials: true });
+      const response = await axios.get(endpoint, 
+        // { withCredentials: true }
+      );
       let fetchedTasks = response.data.tasks || [];
 
       if (propProjectId) {
@@ -291,7 +293,7 @@ const TaskTable = ({ workspaceId: propWorkspaceId, projectId: propProjectId, onT
     try {
       await axios.delete(
         `${import.meta.env.VITE_BACKEND_URL}/task/${taskId}/workspace/${actualWorkspaceId}/delete`,
-        { withCredentials: true }
+        // { withCredentials: true }
       );
       fetchTasks();
       setSelectedRows((prev) => {

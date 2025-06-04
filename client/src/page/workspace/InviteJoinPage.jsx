@@ -29,7 +29,7 @@ const InviteJoinPage = () => {
       const response = await axios.post(
         `${import.meta.env.VITE_BACKEND_URL}/member/workspace/${inviteCode}/join`,
         {},
-        { withCredentials: true }
+        // { withCredentials: true }
       );
       console.log("Join response:", response.data);
       console.log(response.data)

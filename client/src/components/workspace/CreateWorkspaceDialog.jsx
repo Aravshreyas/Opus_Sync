@@ -17,7 +17,7 @@ const CreateWorkspaceDialog = ({ onClose }) => {
       const response = await axios.post(
         `${import.meta.env.VITE_BACKEND_URL}/workspace/create/new`,
         { name, description },
-        { withCredentials: true } // Include cookies for authentication
+        // { withCredentials: true } // Include cookies for authentication
       );
       console.log("Workspace created:", response.data);
        const newWorkspaceId = response.data?.workspace?._id 

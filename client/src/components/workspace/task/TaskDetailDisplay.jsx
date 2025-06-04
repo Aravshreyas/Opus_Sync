@@ -54,12 +54,12 @@ const TaskDetailDisplay = ({ onClose, onEdit, onDelete }) => {
       try {
         const response = await axios.get(
           `${import.meta.env.VITE_BACKEND_URL}/task/${taskId}/project/${projectId}/workspace/${workspaceId}`,
-          { withCredentials: true }
+          // { withCredentials: true }
         );
         setTask(response.data.task || null);
         const projectResponse = await axios.get(
           `${import.meta.env.VITE_BACKEND_URL}/project/${projectId}/workspace/${workspaceId}`,
-          { withCredentials: true }
+          // { withCredentials: true }
         );
         console.log(projectResponse.data)
         setProject(projectResponse.data.project)

@@ -19,6 +19,7 @@ const googleLoginController = asyncHandler(async (req, res) => {
     return res.status(HTTPSTATUS.OK).json({
         message: "Google login successful",
         user,
+        token
     });
 });
 

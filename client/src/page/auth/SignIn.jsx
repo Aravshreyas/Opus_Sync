@@ -40,12 +40,26 @@ function SignIn() {
       const response = await axios.post(
         `${import.meta.env.VITE_BACKEND_URL}/auth/login`,
         { email, password },
-        { withCredentials: true }
+        // { withCredentials: true }
       );
       console.log("Login response:", response.data);
-      const user = response.data.user; // Extract the nested user object
-      if (!user || !user._id) throw new Error("Invalid user data from backend");
-      setUser(user);
+
+    const { token, user } = response.data;
+    if (!user || !user._id) throw new Error("Invalid user data from backend");
+
+    setUser(user);
+
+       const isAppleDevice = () => {
+      const ua = navigator.userAgent;
+      const isSafari = /^((?!chrome|android).)*safari/i.test(ua);
+      return /iPad|iPhone|iPod|Macintosh/.test(ua) && isSafari;
+    };
+
+    if (isAppleDevice() && token) {
+      sessionStorage.setItem("accessToken", token);
+    }
+
+
       const workspaceId = user.currentWorkspace; // Use the string directly since it's not an object
       const decodedUrl = returnUrl ? decodeURIComponent(returnUrl) : null;
       navigate(decodedUrl || `/workspace/${workspaceId || "default"}`);

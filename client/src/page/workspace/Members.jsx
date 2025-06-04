@@ -80,7 +80,7 @@ export default function Members() {
         }),
         axios.get(
           `${import.meta.env.VITE_BACKEND_URL}/workspace/members/${workspaceId}`,
-          { withCredentials: true }
+          // { withCredentials: true }
         ),
       ]);
 
@@ -157,7 +157,7 @@ export default function Members() {
       const response = await axios.put(
         `${import.meta.env.VITE_BACKEND_URL}/workspace/change/member/role/${workspaceId}`,
         { memberId: memberIdToChange, roleId: newRoleId },
-        { withCredentials: true }
+        // { withCredentials: true }
       );
       setMembers(prevMembers =>
         prevMembers.map(m =>

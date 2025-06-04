@@ -45,7 +45,7 @@ export function AuthProvider({ children }) {
         try {
             const workspacesResponse = await axios.get(
               `${baseUrl}/workspace/all`, 
-              { withCredentials: true }
+              // { withCredentials: true }
             );
             workspaces = workspacesResponse.data.workspaces || [];
         } catch (wsError) {

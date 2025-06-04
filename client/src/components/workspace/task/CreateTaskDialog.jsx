@@ -52,7 +52,7 @@ const CreateTaskDialog = ({ onClose, workspaceId, task = null, onTaskProcessed, 
       try {
         const response = await axios.get(
           `${import.meta.env.VITE_BACKEND_URL}/project/workspace/${workspaceId}/all`,
-          { withCredentials: true }
+          // { withCredentials: true }
         );
         setProjects(response.data.projects || []);
       } catch (error) {
@@ -75,7 +75,7 @@ const CreateTaskDialog = ({ onClose, workspaceId, task = null, onTaskProcessed, 
       try {
         const response = await axios.get(
           `${import.meta.env.VITE_BACKEND_URL}/workspace/members/${workspaceId}`,
-          { withCredentials: true }
+          // { withCredentials: true }
         );
         setMembers(response.data.members || []);
       } catch (error) {
@@ -121,14 +121,14 @@ const CreateTaskDialog = ({ onClose, workspaceId, task = null, onTaskProcessed, 
         response = await axios.put(
           `${import.meta.env.VITE_BACKEND_URL}/task/${task._id}/project/${project}/workspace/${workspaceId}/update`,
           taskData,
-          { withCredentials: true }
+          // { withCredentials: true }
         );
       } else {
         console.log("Creating task with data:", taskData);
         response = await axios.post(
           `${import.meta.env.VITE_BACKEND_URL}/task/project/${project}/workspace/${workspaceId}/create`,
           taskData,
-          { withCredentials: true }
+          // { withCredentials: true }
         );
       }
       

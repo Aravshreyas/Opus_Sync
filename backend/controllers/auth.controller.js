@@ -38,17 +38,17 @@ const googleLoginCallback = asyncHandler(async (req, res) => {
         `${config.FRONTEND_GOOGLE_CALLBACK_URL}?status=failure`
       );
     }
-
-    return res.redirect(
-      `${config.FRONTEND_ORIGIN}/workspace/${currentWorkspace}`
-    );
-
-    return res.status(HTTPSTATUS.OK).json({
+    
+     res.status(HTTPSTATUS.OK).json({
         message: "Google login successful",
         token,
         user: req.user.omitPassword(),
         workspaceId: currentWorkspace
     });
+    return res.redirect(
+      `${config.FRONTEND_ORIGIN}/workspace/${currentWorkspace}`
+    );
+
 });
 
 const registerUserController = asyncHandler(async (req, res) => {

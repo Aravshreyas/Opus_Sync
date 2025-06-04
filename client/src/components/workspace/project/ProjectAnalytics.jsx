@@ -26,7 +26,7 @@ const ProjectAnalytics = ({ refreshKey }) => {
     try {
       const response = await axios.get(
         `${import.meta.env.VITE_BACKEND_URL}/task/workspace/${workspaceId}/all`,
-        { withCredentials: true }
+        // { withCredentials: true }
       );
       const tasks = response.data.tasks ;
 

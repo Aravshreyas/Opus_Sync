@@ -67,13 +67,13 @@ const CreateProjectDialog = ({ workspaceId, onSubmit, onClose, project = null })
         response = await axios.put(
           `${import.meta.env.VITE_BACKEND_URL}/project/${project._id}/workspace/${workspaceId}/update`,
           { ...formData },
-          { withCredentials: true }
+          // { withCredentials: true }
         );
       } else {
         response = await axios.post(
           `${import.meta.env.VITE_BACKEND_URL}/project/workspace/${workspaceId}/create`,
           formData,
-          { withCredentials: true }
+          // { withCredentials: true }
         );
       }
 
@@ -107,7 +107,7 @@ const CreateProjectDialog = ({ workspaceId, onSubmit, onClose, project = null })
     try {
       await axios.delete(
         `${import.meta.env.VITE_BACKEND_URL}/project/${project._id}/workspace/${workspaceId}/delete`,
-        { withCredentials: true }
+        // { withCredentials: true }
       );
       
       // Notify the parent component about the deletion (optional, if parent needs to update state)
