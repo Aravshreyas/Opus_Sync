@@ -4,7 +4,9 @@ const { UnauthorizedException } = require("../utils/appError");
 const User = require("../models/user.model");
 
 const isAuthenticated = async (req, res, next) => {
-    const token = req.cookies.jwt;
+    const token = req.cookies.jwt || (req.headers.authorization && req.headers.authorization.startsWith("Bearer ")
+    ? req.headers.authorization.split(" ")[1]
+    : null);
     if (!token) {
         return next(UnauthorizedException("Unauthorized. Please log in."));
     }
