@@ -4,14 +4,6 @@
   command = "npm run build"
   publish = "dist"
 
-# API Proxy Rule: THIS MUST BE BEFORE THE SPA FALLBACK RULE
-[[redirects]]
-  from = "/api/*"  # Any request to opus-sync.netlify.app/api/...
-  to = "https://opus-sync.onrender.com/:splat" # Will be proxied to your Render backend
-  status = 200    # Crucial: Makes it a proxy, not a redirect
-  force = true    # Ensures this rule is applied
-
-# SPA Fallback Rule: Handles all other paths for your client-side routing
 [[redirects]]
   from = "/*"
   to = "/index.html"
