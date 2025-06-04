@@ -41,7 +41,7 @@ const loginOrCreateAccountService = async (data) => {
 
       // Create a new workspace for the user
       const workspace = new WorkspaceModel({
-        name: `My Workspace`,
+        name: `${user.name}'s Workspace`,
         description: `Workspace created for ${user.name}`,
         owner: user._id,
       });
@@ -105,7 +105,7 @@ const registerUserService = async (body) => {
     await account.save({ session });
 
     const workspace = new WorkspaceModel({
-      name: `My Workspace`,
+      name: `${user.name}'s Workspace`,
       description: `Workspace created for ${user.name}`,
       owner: user._id,
     });

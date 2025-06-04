@@ -29,7 +29,8 @@ const googleLoginCallback = asyncHandler(async (req, res) => {
     res.cookie("jwt", token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
-        sameSite: "None",
+        sameSite: "Lax",
+        path:"/",
         maxAge: 60 * 60 * 1000
     });
 
@@ -71,7 +72,8 @@ const registerUserController = asyncHandler(async (req, res) => {
     res.cookie("jwt", token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
-        sameSite: "None",
+        sameSite: "Lax",
+        path:"/",
         maxAge: 60 * 60 * 1000
     });
     return res.status(HTTPSTATUS.CREATED).json({
@@ -90,7 +92,8 @@ const loginController = asyncHandler(async (req, res, next) => {
         res.cookie("jwt", token, {
             httpOnly: true,
             secure: process.env.NODE_ENV === "production",
-            sameSite: "None",
+            sameSite: "Lax",
+            path:"/",
             maxAge: 60 * 60 * 1000
         });
         return res.status(HTTPSTATUS.OK).json({
@@ -105,7 +108,8 @@ const logOutController = asyncHandler(async (req, res) => {
     res.clearCookie("jwt", {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
-        sameSite: "None"
+        sameSite: "Lax",
+        path:"/",
     });
     return res.status(HTTPSTATUS.OK).json({ message: "Logged out successfully - discard token on client" });
 });
