@@ -19,6 +19,14 @@ const userSchema = new mongoose.Schema(
         type: String,
         default: null,
       },
+      publicId: {  
+      type: String,
+      default: null,
+      },
+      defaultProfilePictureUrl: { 
+            type: String,
+            default: null,
+      },
       currentWorkspace: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Workspace",

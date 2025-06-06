@@ -10,7 +10,7 @@ import WorkspaceSettings from "../page/workspace/WorkspaceSettings";
 import Projects from "../page/workspace/Projects";
 import InviteJoinPage from "../page/workspace/InviteJoinPage";
 import TaskDetailDisplay from "../components/workspace/task/TaskDetailDisplay";
-
+import AccountSettings from "../page/workspace/UserProfileSettings";
 export const AUTH_ROUTES = {
   SIGN_IN: "/",
   SIGN_UP: "/signup", // This is the path we need to make public
@@ -25,6 +25,7 @@ export const PROTECTED_ROUTES = {
   SETTINGS: "/workspace/:workspaceId/settings",
   PROJECT_DETAILS: "/workspace/:workspaceId/project/:projectId",
   SINGLE_TASK: "/workspace/:workspaceId/project/:projectId/tasks/:taskId",
+   ACCOUNT_SETTINGS: "/settings/account",
 };
 
 export const BASE_ROUTE = {
@@ -45,6 +46,7 @@ export const protectedRoutePaths = [
   { path: PROTECTED_ROUTES.SETTINGS, element: <WorkspaceSettings /> },
   { path: PROTECTED_ROUTES.PROJECT_DETAILS, element: <Projects /> },
   { path: PROTECTED_ROUTES.SINGLE_TASK, element: <TaskDetailDisplay /> },
+  { path: PROTECTED_ROUTES.ACCOUNT_SETTINGS, element: <AccountSettings /> },
 ];
 
 export const baseRoutePaths = [

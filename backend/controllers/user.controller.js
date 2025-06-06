@@ -1,7 +1,7 @@
 const asyncHandler = require("../middlewares/asyncHandler.middleware");
 const { HTTPSTATUS } = require("../config/http.config");
-const { getCurrentUserService, updateCurrentWorkspaceService } = require("../services/user.service");
-
+const { getCurrentUserService, updateCurrentWorkspaceService,updateUserProfileService,deleteUserProfilePictureService } = require("../services/user.service");
+const { BadRequestException, UnauthorizedException } = require("../utils/appError");
 const getCurrentUserController = asyncHandler(async (req, res) => {
   const userId = req.user ? req.user.userId || req.user._id : null;
   console.log("User ID from req.user:", userId);
@@ -39,4 +39,43 @@ const updateCurrentWorkspaceController = asyncHandler(async (req, res) => {
   });
 });
 
-module.exports = { getCurrentUserController, updateCurrentWorkspaceController };
+const updateUserProfileController = asyncHandler(async (req, res) => {
+    const userId = req.user ? req.user._id : null;
+    if (!userId) {
+        throw new UnauthorizedException("User not authenticated");
+    }
+
+    // Now expecting name and profilePicture (as a string URL) directly from the body
+    const updateData = req.body;
+
+    // Basic validation
+    if (Object.keys(updateData).length === 0) {
+        throw new BadRequestException("No update data provided.");
+    }
+    
+    const { user } = await updateUserProfileService(userId, updateData);
+
+    return res.status(HTTPSTATUS.OK).json({
+        message: "Profile updated successfully",
+        user,
+    });  
+});
+
+
+
+const deleteUserProfilePictureController = asyncHandler(async (req, res) => {
+  const userId = req.user ? req.user._id : null;
+  if (!userId) {
+    throw new UnauthorizedException("User not authenticated");
+  }
+
+  const { user } = await deleteUserProfilePictureService(userId);
+
+  return res.status(HTTPSTATUS.OK).json({
+    message: "Profile picture removed and set to default",
+    user,
+  });
+});
+
+
+module.exports = { getCurrentUserController, updateCurrentWorkspaceController,updateUserProfileController,deleteUserProfilePictureController   };

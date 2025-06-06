@@ -17,6 +17,10 @@ const appConfig = () =>({
 
     FRONTEND_ORIGIN:getEnv('FRONTEND_ORIGIN','http://localhost:5173'), // Default to frontend dev server
     FRONTEND_GOOGLE_CALLBACK_URL:getEnv('FRONTEND_GOOGLE_CALLBACK_URL'),
+
+    CLOUDINARY_CLOUD_NAME: getEnv('CLOUDINARY_CLOUD_NAME'), 
+    CLOUDINARY_API_KEY: getEnv('CLOUDINARY_API_KEY'),       
+    CLOUDINARY_API_SECRET: getEnv('CLOUDINARY_API_SECRET'), 
 })
 
 const config = appConfig();

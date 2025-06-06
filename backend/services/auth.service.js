@@ -29,6 +29,7 @@ const loginOrCreateAccountService = async (data) => {
         email,
         name: displayName,
         profilePicture: picture || null,
+        defaultProfilePictureUrl: picture || null,
       });
       await user.save({ session });
 
