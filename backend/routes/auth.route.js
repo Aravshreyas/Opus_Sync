@@ -6,6 +6,8 @@ const {
   loginController,
   logOutController,
   registerUserController,
+   verifyOtpController,  
+  resendOtpController 
 } = require("../controllers/auth.controller");
 
 const failedUrl = `${config.FRONTEND_GOOGLE_CALLBACK_URL}?status=failure`;
@@ -15,6 +17,8 @@ const authRoutes = express.Router();
 authRoutes.post("/register", registerUserController);
 authRoutes.post("/login", loginController);
 authRoutes.post("/logout", logOutController);
+authRoutes.post("/verify-otp", verifyOtpController);
+authRoutes.post("/resend-otp", resendOtpController);
 
 authRoutes.get(
   "/google",

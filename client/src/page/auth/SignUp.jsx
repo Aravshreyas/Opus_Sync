@@ -24,10 +24,22 @@ function SignUp() {
         email,
         password,
       });
-      const token = response.data.token;
-      const user = response.data.user;
-      console.log("Signup successful, user:", user);
-      navigate("/"); // Redirect to home or login page
+      if (response) {
+    // Backend successfully created the unverified user and sent an OTP
+    const userEmail = response.data.email;
+    console.log("Registration successful for:", userEmail, "OTP sent.");
+    
+    // Navigate to the OTP verification page
+    // We pass the user's email in the `state` so the OTP page knows who to verify
+    navigate('/verify-otp', { state: { email: userEmail } });
+  } else {
+    // Handle any unexpected success responses from the backend
+    setError(response.data?.message || "An unexpected error occurred.");
+  }
+      // const token = response.data.token;
+      // const user = response.data.user;
+      // console.log("Signup successful, user:", user);
+      // navigate("/"); // Redirect to home or login page
     } catch (err) {
       setError(err.response?.data?.message || "Signup failed");
       console.log("Error:", err.response?.data?.message || "Signup failed");

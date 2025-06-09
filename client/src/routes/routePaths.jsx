@@ -11,11 +11,13 @@ import Projects from "../page/workspace/Projects";
 import InviteJoinPage from "../page/workspace/InviteJoinPage";
 import TaskDetailDisplay from "../components/workspace/task/TaskDetailDisplay";
 import AccountSettings from "../page/workspace/UserProfileSettings";
+import OTPVerificationPage from "../page/auth/OTPVerificationPage"; 
 export const AUTH_ROUTES = {
   SIGN_IN: "/",
   SIGN_UP: "/signup", // This is the path we need to make public
   GOOGLE_OAUTH_FAILURE: "/google-oauth-failure",
   GOOGLE_OAUTH_SUCCESS: "/google-oauth-success",
+  VERIFY_OTP: "/verify-otp",
 };
 
 export const PROTECTED_ROUTES = {
@@ -37,6 +39,7 @@ export const authenticationRoutePaths = [
   { path: AUTH_ROUTES.SIGN_UP, element: <SignUp /> },
   { path: AUTH_ROUTES.GOOGLE_OAUTH_FAILURE, element: <GoogleOAuthFailure /> },
   { path: AUTH_ROUTES.GOOGLE_OAUTH_SUCCESS, element: <GoogleOAuthSuccess /> },
+  { path: AUTH_ROUTES.VERIFY_OTP, element: <OTPVerificationPage /> },
 ];
 
 export const protectedRoutePaths = [
@@ -61,6 +64,7 @@ export const PUBLIC_PATH_PATTERNS = [
   AUTH_ROUTES.GOOGLE_OAUTH_FAILURE,
   AUTH_ROUTES.GOOGLE_OAUTH_SUCCESS,
   BASE_ROUTE.INVITE_URL,
+  AUTH_ROUTES.VERIFY_OTP,
   // Add any other public paths like "/password-reset", "/request-password-reset", etc.
 ];
 

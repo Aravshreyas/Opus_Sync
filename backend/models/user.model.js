@@ -32,6 +32,7 @@ const userSchema = new mongoose.Schema(
         ref: "Workspace",
       },
       isActive: { type: Boolean, default: true },
+      isVerified: { type: Boolean, default: false }, // for otp 
       lastLogin: { type: Date, default: null },
     },
     {

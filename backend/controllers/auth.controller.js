@@ -2,7 +2,8 @@
 const asyncHandler = require("../middlewares/asyncHandler.middleware");
 const { config } = require("../config/app.config");
 const { HTTPSTATUS } = require("../config/http.config");
-const { registerUserService } = require("../services/auth.service");
+const { registerUserService,sendOtpForVerificationService, 
+    verifyOtpService } = require("../services/auth.service");
 const passport = require("passport");
 const jwt = require("jsonwebtoken");
 const UserModel = require("../models/user.model");
@@ -56,7 +57,7 @@ const googleLoginCallback = asyncHandler(async (req, res) => {
 })
 
 const registerUserController = asyncHandler(async (req, res) => {
-    const { email, password, name } = req.body; // Assuming these are required fields
+    const { email, password, name } = req.body;
 
     if (!email) {
         throw BadRequestException("Email is required");
@@ -68,23 +69,57 @@ const registerUserController = asyncHandler(async (req, res) => {
         throw BadRequestException("Name is required");
     }
 
-    const { userId, workspaceId } = await registerUserService({ email, password, name });
-    const user = await UserModel.findById(userId); // Fetch user after registration
-    const token = generateToken(user);
+    // Step 1: Create an unverified user account.
+    // The service should handle cases where an unverified user with this email already exists.
+    const { email: userEmail } = await registerUserService({ email, password, name });
+    
+    // Step 2: Trigger the OTP email to be sent.
+    await sendOtpForVerificationService({ email: userEmail });
 
+    // Step 3: Respond to the frontend, telling it to show the OTP verification page.
+    return res.status(HTTPSTATUS.CREATED).json({
+        message: "Registration successful. An OTP has been sent to your email for verification.",
+        email: userEmail, // Send back email so frontend knows who to verify
+    });
+});
+
+const verifyOtpController = asyncHandler(async (req, res) => {
+    const { email, otp } = req.body;
+
+    // The service will throw an error if OTP is invalid/expired
+    const { user } = await verifyOtpService({ email, otp });
+
+    // If verification is successful, log the user in by creating and sending a token
+    const token = generateToken(user);
+    
     res.cookie("jwt", token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         sameSite: process.env.NODE_ENV === "production"?"None":"Lax",
-        maxAge: 60 * 60 * 1000
+        path: "/",
+        maxAge: 24 * 60 * 60 * 1000 // 24 hours
     });
-    return res.status(HTTPSTATUS.CREATED).json({
-        message: "User created successfully",
+
+    return res.status(HTTPSTATUS.OK).json({
+        message: "Email verified successfully. Logged in.",
         token,
-        user: user.omitPassword(),
-        workspaceId
+        user: user.omitPassword ? user.omitPassword() : user // Use omitPassword if it exists
     });
 });
+
+// --- NEW CONTROLLER: Resend OTP ---
+const resendOtpController = asyncHandler(async (req, res) => {
+    const { email } = req.body;
+    if (!email) {
+        throw new BadRequestException("Email is required.");
+    }
+    
+    // The service handles finding the user and sending the new OTP
+    await sendOtpForVerificationService({ email });
+
+    return res.status(HTTPSTATUS.OK).json({ message: "A new OTP has been sent to your email." });
+});
+
 
 const loginController = asyncHandler(async (req, res, next) => {
     passport.authenticate("local", (err, user, info) => {
@@ -114,4 +149,4 @@ const logOutController = asyncHandler(async (req, res) => {
     return res.status(HTTPSTATUS.OK).json({ message: "Logged out successfully - discard token on client" });
 });
 
-module.exports = { googleLoginCallback, registerUserController, loginController, logOutController };
+module.exports = { googleLoginCallback, registerUserController, loginController, logOutController,verifyOtpController, resendOtpController };
