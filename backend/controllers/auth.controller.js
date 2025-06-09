@@ -103,7 +103,7 @@ const verifyOtpController = asyncHandler(async (req, res) => {
     return res.status(HTTPSTATUS.OK).json({
         message: "Email verified successfully. Logged in.",
         token,
-        user: user.omitPassword ? user.omitPassword() : user // Use omitPassword if it exists
+        user: user.omitPassword()  // Use omitPassword if it exists
     });
 });
 

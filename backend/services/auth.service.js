@@ -219,7 +219,7 @@ const verifyOtpService = async ({ email, otp }) => {
         { email }, 
         { isVerified: true }, 
         { new: true }
-    ).populate("currentWorkspace").select("-password");
+    )
 
     await OtpModel.deleteOne({ email });
 
