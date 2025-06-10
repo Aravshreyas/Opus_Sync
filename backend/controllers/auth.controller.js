@@ -3,7 +3,9 @@ const asyncHandler = require("../middlewares/asyncHandler.middleware");
 const { config } = require("../config/app.config");
 const { HTTPSTATUS } = require("../config/http.config");
 const { registerUserService,sendOtpForVerificationService, 
-    verifyOtpService } = require("../services/auth.service");
+    verifyOtpService ,requestPasswordResetService,
+  verifyPasswordResetOtpService,
+  resetPasswordService, } = require("../services/auth.service");
 const passport = require("passport");
 const jwt = require("jsonwebtoken");
 const UserModel = require("../models/user.model");
@@ -140,6 +142,37 @@ const loginController = asyncHandler(async (req, res, next) => {
     })(req, res, next);
 });
 
+
+const forgotPasswordController = asyncHandler(async (req, res) => {
+    const { email } = req.body;
+    if (!email) throw new BadRequestException("Please provide an email address.");
+    
+    const { message } = await requestPasswordResetService({ email });
+    
+    return res.status(HTTPSTATUS.OK).json({ message });
+});
+
+// --- NEW controller to verify OTP and return a temporary token ---
+const verifyPasswordResetOtpController = asyncHandler(async (req, res) => {
+    const { email, otp } = req.body;
+    
+    const { passwordResetToken } = await verifyPasswordResetOtpService({ email, otp });
+
+    return res.status(HTTPSTATUS.OK).json({
+        message: "OTP verified successfully. You can now set a new password.",
+        passwordResetToken,
+    });
+});
+
+// --- MODIFIED controller to use the temporary token ---
+const resetPasswordController = asyncHandler(async (req, res) => {
+    const { resetToken, newPassword } = req.body;
+    
+    const { message } = await resetPasswordService({ resetToken, newPassword });
+
+    return res.status(HTTPSTATUS.OK).json({ message });
+});
+
 const logOutController = asyncHandler(async (req, res) => {
     res.clearCookie("jwt", {
         httpOnly: true,
@@ -149,4 +182,4 @@ const logOutController = asyncHandler(async (req, res) => {
     return res.status(HTTPSTATUS.OK).json({ message: "Logged out successfully - discard token on client" });
 });
 
-module.exports = { googleLoginCallback, registerUserController, loginController, logOutController,verifyOtpController, resendOtpController };
+module.exports = { googleLoginCallback, registerUserController, loginController, logOutController,verifyOtpController, resendOtpController,forgotPasswordController,verifyPasswordResetOtpController,resetPasswordController, };

@@ -7,7 +7,10 @@ const {
   logOutController,
   registerUserController,
    verifyOtpController,  
-  resendOtpController 
+  resendOtpController ,
+  forgotPasswordController,
+  verifyPasswordResetOtpController,
+  resetPasswordController,
 } = require("../controllers/auth.controller");
 
 const failedUrl = `${config.FRONTEND_GOOGLE_CALLBACK_URL}?status=failure`;
@@ -19,6 +22,9 @@ authRoutes.post("/login", loginController);
 authRoutes.post("/logout", logOutController);
 authRoutes.post("/verify-otp", verifyOtpController);
 authRoutes.post("/resend-otp", resendOtpController);
+authRoutes.post("/forgot-password", forgotPasswordController);
+authRoutes.post("/verify-password-otp", verifyPasswordResetOtpController);
+authRoutes.post("/reset-password", resetPasswordController);
 
 authRoutes.get(
   "/google",

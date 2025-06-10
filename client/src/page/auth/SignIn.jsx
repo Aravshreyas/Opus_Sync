@@ -39,32 +39,32 @@ function SignIn() {
     try {
       const response = await axios.post(
         `${import.meta.env.VITE_BACKEND_URL}/auth/login`,
-        { email, password },
+        { email, password }
         // { withCredentials: true }
       );
       console.log("Login response:", response.data);
 
-    const { token, user } = response.data;
-    if (!user || !user._id) throw new Error("Invalid user data from backend");
+      const { token, user } = response.data;
+      if (!user || !user._id) throw new Error("Invalid user data from backend");
 
-    setUser(user);
+      setUser(user);
 
-       const isAppleDevice = () => {
-      const ua = navigator.userAgent;
-      const isSafari = /^((?!chrome|android).)*safari/i.test(ua);
-      return /iPad|iPhone|iPod|Macintosh/.test(ua) && isSafari;
-    };
+      const isAppleDevice = () => {
+        const ua = navigator.userAgent;
+        const isSafari = /^((?!chrome|android).)*safari/i.test(ua);
+        return /iPad|iPhone|iPod|Macintosh/.test(ua) && isSafari;
+      };
 
-    if (isAppleDevice() && token) {
-      sessionStorage.setItem("accessToken", token);
-    }
-
+      if (isAppleDevice() && token) {
+        sessionStorage.setItem("accessToken", token);
+      }
 
       const workspaceId = user.currentWorkspace; // Use the string directly since it's not an object
       const decodedUrl = returnUrl ? decodeURIComponent(returnUrl) : null;
       navigate(decodedUrl || `/workspace/${workspaceId || "default"}`);
     } catch (err) {
-      const errorMessage = err.response?.data?.message || err.message || "Login failed";
+      const errorMessage =
+        err.response?.data?.message || err.message || "Login failed";
       setError(errorMessage);
       console.error("Error during login:", err.response?.data || err.message);
     } finally {
@@ -76,10 +76,13 @@ function SignIn() {
     window.location.href = `${import.meta.env.VITE_BACKEND_URL}/auth/google`;
   };
 
-  return (  
+  return (
     <div className="flex min-h-svh flex-col items-center justify-center gap-6 bg-muted p-6 md:p-10">
       <div className="flex w-full max-w-sm flex-col gap-6">
-        <Link to="/" className="flex items-center gap-2 self-center font-medium">
+        <Link
+          to="/"
+          className="flex items-center gap-2 self-center font-medium"
+        >
           <div className="flex h-6 w-6 items-center justify-center rounded-md bg-primary text-primary-foreground">
             <AudioLines className="size-4" />
           </div>
@@ -135,12 +138,12 @@ function SignIn() {
                       <div className="space-y-2">
                         <div className="flex items-center">
                           <label className="text-sm">Password</label>
-                          <a
-                            href="#"
-                            className="ml-auto text-sm underline-offset-4 hover:underline"
+                          <Link
+                            to="/forgot-password" 
+                            className="ml-auto text-sm  hover:text-indigo-500 underline-offset-4 hover:underline"
                           >
                             Forgot your password?
-                          </a>
+                          </Link>
                         </div>
                         <input
                           type="password"
