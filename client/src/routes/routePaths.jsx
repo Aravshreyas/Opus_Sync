@@ -16,6 +16,8 @@ import ForgotPasswordPage from "../page/auth/ForgotPasswordPage";
 import VerifyPasswordOtpPage from "../page/auth/VerifyPasswordOtpPage";
 import ResetPasswordPage from "../page/auth/ResetPasswordPage";
 
+import ChatPage from '../page/workspace/ChatPage';
+
 export const AUTH_ROUTES = {
   SIGN_IN: "/",
   SIGN_UP: "/signup", // This is the path we need to make public
@@ -35,6 +37,7 @@ export const PROTECTED_ROUTES = {
   PROJECT_DETAILS: "/workspace/:workspaceId/project/:projectId",
   SINGLE_TASK: "/workspace/:workspaceId/project/:projectId/tasks/:taskId",
    ACCOUNT_SETTINGS: "/settings/account",
+   CHAT: "/chat",
 };
 
 export const BASE_ROUTE = {
@@ -60,6 +63,7 @@ export const protectedRoutePaths = [
   { path: PROTECTED_ROUTES.PROJECT_DETAILS, element: <Projects /> },
   { path: PROTECTED_ROUTES.SINGLE_TASK, element: <TaskDetailDisplay /> },
   { path: PROTECTED_ROUTES.ACCOUNT_SETTINGS, element: <AccountSettings /> },
+  { path: PROTECTED_ROUTES.CHAT, element: <ChatPage /> },
 ];
 
 export const baseRoutePaths = [

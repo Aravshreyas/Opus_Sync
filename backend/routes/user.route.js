@@ -1,5 +1,5 @@
 const { Router } = require("express");
-const { getCurrentUserController,updateCurrentWorkspaceController,updateUserProfileController,deleteUserProfilePictureController } = require("../controllers/user.controller");
+const { getCurrentUserController,updateCurrentWorkspaceController,updateUserProfileController,deleteUserProfilePictureController,getAllChatContactsController } = require("../controllers/user.controller");
 const userRoutes = Router();
 
 userRoutes.get("/current", getCurrentUserController);
@@ -9,4 +9,5 @@ userRoutes.put(
     updateUserProfileController
 );
 userRoutes.delete('/profile/picture',deleteUserProfilePictureController)
+userRoutes.get("/chat-contacts",  getAllChatContactsController);
 module.exports = userRoutes;

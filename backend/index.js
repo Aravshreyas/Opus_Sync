@@ -18,10 +18,14 @@ const workspaceRoutes = require("./routes/workspace.route");
 const memberRoutes = require("./routes/member.route");
 const projectRoutes = require("./routes/project.route");
 const taskRoutes = require("./routes/task.route");
+const conversationRoutes = require("./routes/conversation.routes");
 
 const isAuthenticated = require("./middlewares/isAuthenticated.middleware");
 
 require("./config/passport.config");
+
+const { Server } = require("socket.io");
+const { initializeSocket } = require('./socket/socket'); 
 
 const app = express();
 const BASE_PATH = config.BASE_PATH;
@@ -63,12 +67,23 @@ app.use(`${BASE_PATH}/workspace`, isAuthenticated, workspaceRoutes);
 app.use(`${BASE_PATH}/member`, isAuthenticated, memberRoutes);
 app.use(`${BASE_PATH}/project`, isAuthenticated, projectRoutes);
 app.use(`${BASE_PATH}/task`, isAuthenticated, taskRoutes);
+app.use(`${BASE_PATH}/conversations`, isAuthenticated, conversationRoutes);
 
 app.use(errorHandler);
 
-// Start server and initialize Socket.IO
+
 const server = app.listen(config.PORT, async () => {
   console.log(`Server is running on port ${config.PORT} in ${config.NODE_ENV} mode`);
   await connectDatabase();
 });
 
+const io = new Server(server, {
+  cors: {
+    origin: "https://opus-sync.netlify.app", 
+      // origin:"http://localhost:5173",
+    methods: ["GET", "POST"],
+    credentials: true
+  }
+});
+
+initializeSocket(io);

@@ -1,5 +1,6 @@
 
 const UserModel = require("../models/user.model");
+const MemberModel = require("../models/member.model");
 const cloudinary = require('../config/cloudinary.config');
 
 const {NotFoundException } = require("../utils/appError");
@@ -74,6 +75,16 @@ const deleteUserProfilePictureService = async (userId) => {
 
   return { user: updatedUserToReturn };
 };
+const getAllChatContactsService = async (currentUserId) => {
+    const userMemberships = await MemberModel.find({ userId: currentUserId }).select('workspaceId');
+    const workspaceIds = userMemberships.map(m => m.workspaceId);
+    const allMembersInWorkspaces = await MemberModel.find({ workspaceId: { $in: workspaceIds } }).select('userId');
+    const userIds = [...new Set(allMembersInWorkspaces.map(m => m.userId.toString()))];
+    const contacts = await UserModel.find({ _id: { $in: userIds, $ne: currentUserId } })
+        .select("name email profilePicture defaultProfilePictureUrl createdAt");
+    return { contacts };
+};
+
 
   
-  module.exports = { getCurrentUserService, updateCurrentWorkspaceService,updateUserProfileService,deleteUserProfilePictureService };
+  module.exports = { getCurrentUserService, updateCurrentWorkspaceService,updateUserProfileService,deleteUserProfilePictureService,getAllChatContactsService };

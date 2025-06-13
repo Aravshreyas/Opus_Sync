@@ -1,6 +1,6 @@
 const asyncHandler = require("../middlewares/asyncHandler.middleware");
 const { HTTPSTATUS } = require("../config/http.config");
-const { getCurrentUserService, updateCurrentWorkspaceService,updateUserProfileService,deleteUserProfilePictureService } = require("../services/user.service");
+const { getCurrentUserService, updateCurrentWorkspaceService,updateUserProfileService,deleteUserProfilePictureService,getAllChatContactsService } = require("../services/user.service");
 const { BadRequestException, UnauthorizedException } = require("../utils/appError");
 const getCurrentUserController = asyncHandler(async (req, res) => {
   const userId = req.user ? req.user.userId || req.user._id : null;
@@ -77,5 +77,11 @@ const deleteUserProfilePictureController = asyncHandler(async (req, res) => {
   });
 });
 
+const getAllChatContactsController = asyncHandler(async (req, res) => {
+    const currentUserId = req.user._id;
+    const { contacts } = await getAllChatContactsService(currentUserId);
+    return res.status(HTTPSTATUS.OK).json({ contacts });
+});
 
-module.exports = { getCurrentUserController, updateCurrentWorkspaceController,updateUserProfileController,deleteUserProfilePictureController   };
+
+module.exports = { getCurrentUserController, updateCurrentWorkspaceController,updateUserProfileController,deleteUserProfilePictureController, getAllChatContactsController   };
