@@ -16,7 +16,7 @@ export const SocketProvider = ({ children }) => {
         if (user?._id) {
             const token = sessionStorage.getItem("accessToken");
             const connectionOptions = isAppleDevice() && token ? { auth: { token } } : { withCredentials: true };
-            const newSocket = io(import.meta.env.VITE_BACKEND_URL_BASE || "http://localhost:8000", connectionOptions);
+            const newSocket = io(import.meta.env.VITE_BACKEND_URL || "http://localhost:8000", connectionOptions);
             
             newSocket.on('getOnlineUsers', (users) => setOnlineUsers(users || []));
             setSocket(newSocket);
