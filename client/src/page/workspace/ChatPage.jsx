@@ -11,7 +11,7 @@ const ChatPage = () => {
     const { user } = useAuth();
     const { socket } = useSocket();
     const navigate = useNavigate();
-    const { handleStartCall } = useOutletContext(); // <-- Get function from AppLayout
+     // <-- Get function from AppLayout
     
     const [sidebarItems, setSidebarItems] = useState([]);
     const [activeConversation, setActiveConversation] = useState(null);
