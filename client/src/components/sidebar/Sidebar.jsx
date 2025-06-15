@@ -4,7 +4,7 @@ import { useAuth } from "../../context/auth-context";
 import axios from "axios";
 import {
   AudioLines, Plus, ChevronDown, LayoutDashboard, CircleCheckBig, Users, Settings,
-  Ellipsis, LogOut as LogoutIcon, Loader2, Folder, UserCircle, AlertTriangle, X as IconX,MessageSquare,
+  Ellipsis, LogOut as LogoutIcon, Loader2, Folder, UserCircle, AlertTriangle, X as IconX,MessageSquare,Calendar,Video,
 } from "lucide-react";
 import CreateWorkspaceDialog from "../workspace/CreateWorkspaceDialog";
 import CreateProjectDialog from "../workspace/project/CreateProjectDialog";
@@ -383,6 +383,8 @@ const Sidebar = ({ isDesktopCollapsed, isMobileOpen, closeMobileSidebar }) => {
                 <NavItem to={`/workspace/${workspaceId}/members`} label="Members" icon={Users} exact={true} />
                 <NavItem to={`/workspace/${workspaceId}/settings`} label="Settings" icon={Settings} exact={false} />
                 <NavItem to={`/chat`} label="Chat" icon={MessageSquare} exact={false} />
+                <NavItem to={`/calendar`} label="Calendar" icon={Calendar} exact={false} />
+                <NavItem to={`/meet`} label="Meet" icon={Video} exact={false} />
               </ul>
               <div className="h-px bg-gray-200 w-full my-2" />
               <div className="flex flex-col w-full">

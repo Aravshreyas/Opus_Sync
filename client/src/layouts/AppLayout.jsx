@@ -3,68 +3,15 @@ import React, { useState, useEffect } from "react";
 import Sidebar from "../components/sidebar/Sidebar";
 import Header from "../components/common/Header";
 import { Outlet, useLocation } from "react-router-dom";
-import { useSocket } from "../context/SocketContext"; // Import useSocket
-import IncomingCallToast from "../components/chat/IncomingCallToast"; // Import new components
-import VideoCallModal from "../components/chat/VideoCallModal";
+
 
 const AppLayout = () => {
   const [isDesktopSidebarCollapsed, setIsDesktopSidebarCollapsed] = useState(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const location = useLocation();
-const { socket } = useSocket();
 
-const [incomingCall, setIncomingCall] = useState(null); // For the pop-up toast
-  const [activeCall, setActiveCall] = useState(null);     // For the full-screen video modal
 
-  // This single listener handles incoming calls for the entire app
-  useEffect(() => {
-      if (!socket) return;
-
-      const handleCallMade = (data) => {
-          console.log("Global listener: Incoming call received", data);
-          setIncomingCall({ ...data, isReceivingCall: true });
-      };
-
-      // Also listen for when the other user ends the call abruptly
-      const handleCallEnded = () => {
-          setIncomingCall(null);
-          setActiveCall(null);
-      }
-
-      socket.on('call-made', handleCallMade);
-      socket.on('call-ended', handleCallEnded);
-
-      return () => {
-          socket.off('call-made', handleCallMade);
-          socket.off('call-ended', handleCallEnded);
-      };
-  }, [socket]);
-
-  // --- NEW HANDLERS FOR MANAGING CALLS ---
-
-  const handleAcceptCall = () => {
-      if (incomingCall) {
-          setActiveCall(incomingCall); // Promote the incoming call to an active call
-          setIncomingCall(null); // Hide the toast
-      }
-  };
-
-  const handleDeclineCall = () => {
-      // Optional: you can emit a 'call-declined' event to the caller here
-      if (incomingCall?.from) {
-        socket.emit('end-call', { to: incomingCall.from._id });
-      }
-      setIncomingCall(null);
-  };
-
-  const handleStartCall = (otherUser) => {
-      // This function will be called from ChatPage to start a call
-      setActiveCall({ to: otherUser, from: null, isReceivingCall: false });
-  };
   
-  const handleEndCall = () => {
-      setActiveCall(null);
-  };
   const toggleDesktopSidebar = () => {
     setIsDesktopSidebarCollapsed((prev) => !prev);
   };
@@ -113,7 +60,7 @@ const [incomingCall, setIncomingCall] = useState(null); // For the pop-up toast
           isMobileSidebarOpen={isMobileSidebarOpen}
         />
         <main className="flex-1 overflow-x-hidden overflow-y-auto p-4 md:p-6 lg:p-8">
-          <Outlet context={{ handleStartCall }}/>
+          <Outlet />
         </main>
       </div>
       {/* Backdrop for mobile sidebar */}
@@ -124,17 +71,7 @@ const [incomingCall, setIncomingCall] = useState(null); // For the pop-up toast
           aria-hidden="true"
         ></div>
       )}
-      <IncomingCallToast 
-          callDetails={incomingCall}
-          onAccept={handleAcceptCall}
-          onDecline={handleDeclineCall}
-      />
-      {activeCall && (
-          <VideoCallModal 
-              callDetails={activeCall}
-              onClose={handleEndCall}
-          />
-      )}
+     
     </div>
   );
 };

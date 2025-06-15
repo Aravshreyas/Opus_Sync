@@ -13,7 +13,7 @@ const { BadRequestException } = require("../utils/appError");
 
 const generateToken = (user) => {
     return jwt.sign(
-        { userId: user._id, email: user.email },
+        { userId: user._id, email: user.email,name: user.name },
         process.env.JWT_SECRET,
         { expiresIn: "1h" }
     );

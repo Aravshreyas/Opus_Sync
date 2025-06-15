@@ -7,7 +7,7 @@ import { Loader2, SendHorizontal, Video } from 'lucide-react';
 import UserAvatar from '../common/UserAvatar';
 import MessageItem from './MessageItem';
 
-const MessageWindow = ({ activeConversation, onStartCall }) => {
+const MessageWindow = ({ activeConversation }) => {
     const { socket } = useSocket();
     const { user } = useAuth();
     const { onlineUsers } = useOnlineUsers();
@@ -134,13 +134,7 @@ const MessageWindow = ({ activeConversation, onStartCall }) => {
                         {isTyping ? "Typing..." : isParticipantOnline ? 'Online' : 'Offline'}
                     </p>
                 </div>
-                 <button 
-                    onClick={onStartCall} // <-- Use the handler from props
-                    className="p-2 rounded-full text-slate-500 hover:bg-slate-100 hover:text-indigo-600"
-                    title={`Call ${activeConversation.otherParticipant.name}`}
-                >
-                    <Video size={20} />
-                </button>
+                 
             </div>
             <div className="flex-1 p-4 overflow-y-auto">
                 {isLoading ? <div className="flex justify-center items-center h-full"><Loader2 className="animate-spin text-slate-400" /></div> : (

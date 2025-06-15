@@ -3,6 +3,8 @@
   const mongoose = require('mongoose');
   const Conversation = require('../models/conversation.model');
   const Message = require('../models/message.model');
+  const MeetingModel = require('../models/meeting.model');
+const { createLiveKitToken } = require('../services/livekit.service');
 
   const userSocketMap = {}; 
   const getOnlineUsers = () => Object.keys(userSocketMap);
@@ -34,6 +36,63 @@
         delete userSocketMap[userId];
         io.emit('getOnlineUsers', getOnlineUsers());
       });
+
+
+    // --- NEW: LOBBY AND MEETING JOIN LOGIC ---
+
+      socket.on('request-to-join', async ({ meetingId }) => {
+        try {
+            const meeting = await MeetingModel.findOne({ meetingId: meetingId }).populate('participants', '_id').populate('createdBy', '_id');
+            if (!meeting) {
+                return socket.emit('join-request-failed', { message: "Meeting not found." });
+            }
+
+            const isInvited = meeting.participants.some(p => p._id.toString() === userId);
+            const isAdmin = meeting.createdBy._id.toString() === userId;
+
+            if (isInvited || isAdmin) {
+                // FIX: Use socket.user.name directly
+                const token = await createLiveKitToken({ roomName: meetingId, participantName: socket.user.name });
+                socket.emit('join-request-approved', { token });
+            } else {
+                const adminSocketId = userSocketMap[meeting.createdBy._id.toString()];
+                if (adminSocketId) {
+                    io.to(adminSocketId).emit('new-join-request', { 
+                        // FIX: Use socket.user.name directly
+                        guest: { id: userId, name: socket.user.name },
+                        meetingId: meetingId
+                    });
+                }
+                socket.emit('waiting-for-host');
+            }
+        } catch (error) {
+            console.error("Error in request-to-join:", error);
+            socket.emit('join-request-failed', { message: "Server error." });
+        }
+    });
+
+    socket.on('admit-guest', async ({ guest, meetingId }) => {
+        const meeting = await MeetingModel.findOne({ meetingId });
+        if (!meeting || meeting.createdBy.toString() !== userId) {
+            return; // Security check: only the admin can admit
+        }
+        const token = await createLiveKitToken({ roomName: meetingId, participantName: guest.name });
+        const guestSocketId = userSocketMap[guest.id];
+        if (guestSocketId) {
+            io.to(guestSocketId).emit('join-request-approved', { token });
+        }
+    });
+
+    socket.on('deny-guest', async ({ guest, meetingId }) => {
+        const meeting = await MeetingModel.findOne({ meetingId });
+        if (!meeting || meeting.createdBy.toString() !== userId) {
+            return; // Security check
+        }
+        const guestSocketId = userSocketMap[guest.id];
+         if (guestSocketId) {
+            io.to(guestSocketId).emit('join-request-denied');
+         }
+    });
 
       socket.on('sendMessage', async ({ recipientId, content, workspaceId, conversationId }) => {
         try {
@@ -78,39 +137,6 @@
           });
       socket.on('startTyping', ({ recipientId }) => socket.to(recipientId).emit('typing', { senderId: userId }));
       socket.on('stopTyping', ({ recipientId }) => socket.to(recipientId).emit('stopTyping', { senderId: userId }));
-
-   // When a user initiates a call to another user
-    socket.on('call-user', (data) => {
-        const { to, offer, from } = data;
-        console.log(`[SIGNALING] User ${from.name} is calling user with ID ${to}`);
-        // Forward the offer to the target user's private room
-        io.to(to).emit('call-made', {
-            offer,
-            from,
-        });
-    });
-
-    // When a user accepts a call
-    socket.on('answer-call', (data) => {
-        const { to, answer } = data;
-        console.log(`[SIGNALING] Call answered. Sending answer to original caller: ${to}`);
-        // Forward the answer back to the original caller's private room
-        io.to(to).emit('answer-made', {
-            answer,
-        });
-    });
-    
-    // For relaying network information (ICE candidates) between the two users
-    socket.on('ice-candidate', (data) => {
-        const { to, candidate } = data;
-        io.to(to).emit('ice-candidate', { candidate });
-    });
-
-    // For ending a call
-    socket.on('end-call', (data) => {
-        const { to } = data;
-        io.to(to).emit('call-ended');
-    });
 
       
     });

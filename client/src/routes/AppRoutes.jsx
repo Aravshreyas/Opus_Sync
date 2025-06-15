@@ -5,9 +5,11 @@ import {
   authenticationRoutePaths,
   baseRoutePaths,
   protectedRoutePaths,
+  fullscreenRoutePaths,
 } from "./routePaths";
 import AppLayout from "../layouts/AppLayout";
 import BaseLayout from "../layouts/BaseLayout";
+import MeetLayout from "../layouts/MeetLayout"; 
 
 function AppRoutes() {
   console.log("AppRoutes rendering", {
@@ -50,6 +52,16 @@ function AppRoutes() {
             />
           ))}
         </Route>
+        <Route element={<MeetLayout />}>
+          {fullscreenRoutePaths.map((route) => (
+            <Route
+              key={route.path}
+              path={route.path}
+              element={route.element}
+            />
+          ))}
+        </Route>
+
       </Route>
 
       {/* Catch-all route for debugging */}

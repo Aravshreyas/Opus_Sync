@@ -17,6 +17,9 @@ import VerifyPasswordOtpPage from "../page/auth/VerifyPasswordOtpPage";
 import ResetPasswordPage from "../page/auth/ResetPasswordPage";
 
 import ChatPage from '../page/workspace/ChatPage';
+import MeetPage from '../page/meet/MeetPage';
+import CalendarPage from "../page/calender/Calender";
+import MeetingLobbyPage from '../page/meet/MeetingLobbyPage'; 
 
 export const AUTH_ROUTES = {
   SIGN_IN: "/",
@@ -38,6 +41,9 @@ export const PROTECTED_ROUTES = {
   SINGLE_TASK: "/workspace/:workspaceId/project/:projectId/tasks/:taskId",
    ACCOUNT_SETTINGS: "/settings/account",
    CHAT: "/chat",
+   MEET_HOME: "/meet",
+   MEET_LOBBY: "/meet/join/:meetingId", 
+    CALENDAR: "/calendar", 
 };
 
 export const BASE_ROUTE = {
@@ -64,6 +70,11 @@ export const protectedRoutePaths = [
   { path: PROTECTED_ROUTES.SINGLE_TASK, element: <TaskDetailDisplay /> },
   { path: PROTECTED_ROUTES.ACCOUNT_SETTINGS, element: <AccountSettings /> },
   { path: PROTECTED_ROUTES.CHAT, element: <ChatPage /> },
+  { path: PROTECTED_ROUTES.MEET_HOME, element: <MeetPage /> },
+  { path: PROTECTED_ROUTES.CALENDAR, element: <CalendarPage /> }, 
+];
+export const fullscreenRoutePaths = [
+    { path: PROTECTED_ROUTES.MEET_LOBBY, element: <MeetingLobbyPage /> },
 ];
 
 export const baseRoutePaths = [

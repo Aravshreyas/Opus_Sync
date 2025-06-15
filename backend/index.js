@@ -11,7 +11,8 @@ const BadRequestException = require("./utils/appError");
 const { ErrorCodeEnum } = require("./enums/error-code.enum");
 const passport = require("passport");
 
-
+const calendarRoutes = require("./routes/calendar.routes"); 
+const meetingRoutes = require("./routes/meeting.routes");
 const authRoutes = require("./routes/auth.route");
 const userRoutes = require("./routes/user.route");
 const workspaceRoutes = require("./routes/workspace.route");
@@ -19,6 +20,7 @@ const memberRoutes = require("./routes/member.route");
 const projectRoutes = require("./routes/project.route");
 const taskRoutes = require("./routes/task.route");
 const conversationRoutes = require("./routes/conversation.routes");
+const livekitRoutes = require("./routes/livekit.routes"); 
 
 const isAuthenticated = require("./middlewares/isAuthenticated.middleware");
 
@@ -68,7 +70,9 @@ app.use(`${BASE_PATH}/member`, isAuthenticated, memberRoutes);
 app.use(`${BASE_PATH}/project`, isAuthenticated, projectRoutes);
 app.use(`${BASE_PATH}/task`, isAuthenticated, taskRoutes);
 app.use(`${BASE_PATH}/conversations`, isAuthenticated, conversationRoutes);
-
+app.use(`${BASE_PATH}/meetings`, isAuthenticated,meetingRoutes);
+app.use(`${BASE_PATH}/calendar`, isAuthenticated,calendarRoutes); 
+app.use(`${BASE_PATH}/livekit`,isAuthenticated, livekitRoutes); 
 app.use(errorHandler);
 
 
