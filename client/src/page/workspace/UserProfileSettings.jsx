@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useAuth } from "../../context/auth-context";
 import axios from "axios";
-import {
-  Camera,
+import { useToast } from '../../context/ToastContext';
+import AppLoader from "../../components/common/AppLoader";
+import { Camera,
   UserCircle,
   Trash2,
-  Loader2,
   CheckCircle,
   Shield,
   Bell,
@@ -14,12 +14,12 @@ import {
   Save,
   XCircle,
   KeyRound,
-  RotateCcw,
-} from "lucide-react";
+  RotateCcw } from 'lucide-react';
 import UserAvatar from "../../components/common/UserAvatar"; // Make sure this path is correct
 
 const AccountSettingsPage = () => {
-  const { user, setUser } = useAuth();
+  const { user, setUser, isLoading } = useAuth();
+  const { toast } = useToast();
 
   // State for overall profile edit mode
   const [isEditingProfile, setIsEditingProfile] = useState(false);
@@ -90,9 +90,11 @@ const AccountSettingsPage = () => {
       setIntentToRemoveCustomPic(false);
 
       setProfileSuccessMessage("Profile picture deleted successfully.");
+      toast.success('Profile picture deleted', "Profile picture deleted successfully.");
     } catch (error) {
       console.error("Error deleting profile picture:", error);
       setProfileError("Failed to delete profile picture. Please try again.");
+      toast.error('Deletion failed', "Failed to delete profile picture.");
     } finally {
       setIsDeleting(false);
       setTimeout(() => setProfileSuccessMessage(""), 3000);
@@ -112,17 +114,16 @@ const AccountSettingsPage = () => {
     try {
       const response = await axios.post(
         // IMPORTANT: Replace with your actual Cloudinary cloud name
-        `https://api.cloudinary.com/v1_1/${
-          import.meta.env.VITE_CLOUDINARY_CLOUD_NAME
+        `https://api.cloudinary.com/v1_1/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME
         }/image/upload`,
         formData,
         { withCredentials: false }
       );
       console.log(response.data.public_id)
       return {
-      url: response.data.secure_url,
-      publicId: response.data.public_id,
-    };
+        url: response.data.secure_url,
+        publicId: response.data.public_id,
+      };
     } catch (error) {
       console.error("Cloudinary upload failed:", error);
       const errorMessage =
@@ -155,7 +156,7 @@ const AccountSettingsPage = () => {
 
       try {
         const { url, publicId } = await uploadToCloudinary(file);
-        setNewImage({ url,publicId, isUploading: false }); // Set the new URL
+        setNewImage({ url, publicId, isUploading: false }); // Set the new URL
       } catch (error) {
         setProfileError(error.message);
         setNewImage({ url: null, isUploading: false }); // Reset on failure
@@ -278,13 +279,8 @@ const AccountSettingsPage = () => {
   };
 
   // Loading state while waiting for user data
-  if (!user) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-slate-50 p-8">
-        <Loader2 className="w-12 h-12 animate-spin text-indigo-600" />
-        <p className="mt-4 text-gray-700">Loading user information...</p>
-      </div>
-    );
+  if (isLoading || !user) {
+    return <AppLoader fullPage label="Loading profile..." />;
   }
 
   // Logic to determine which avatar URL to display based on current state
@@ -354,7 +350,7 @@ const AccountSettingsPage = () => {
                 )}
                 {newImage.isUploading && (
                   <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-60 rounded-full">
-                    <Loader2 className="h-8 w-8 text-white animate-spin" />
+                    <AppLoader size="sm" />
                   </div>
                 )}
               </div>
@@ -508,7 +504,7 @@ const AccountSettingsPage = () => {
                   >
                     {isProfileSaving ? (
                       <>
-                        <Loader2 className="h-5 w-5 animate-spin" /> Saving...
+                        <AppLoader size="sm" /> Saving...
                       </>
                     ) : (
                       <>

@@ -1,8 +1,9 @@
+import AppLoader from "../common/AppLoader";
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useAuth } from '../../context/auth-context';
 import UserAvatar from '../common/UserAvatar';
-import { X, Users, Loader2 } from 'lucide-react';
+import { X, Users } from 'lucide-react';
 
 const CreateGroupModal = ({ isOpen, onClose, contacts, onGroupCreated }) => {
     const { user } = useAuth();
@@ -103,7 +104,7 @@ const CreateGroupModal = ({ isOpen, onClose, contacts, onGroupCreated }) => {
                             Cancel
                         </button>
                         <button type="submit" disabled={isLoading} className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md hover:bg-indigo-700 disabled:opacity-50 flex items-center">
-                            {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}
+                            {isLoading && <AppLoader size="sm" />}
                             Create Group
                         </button>
                     </div>

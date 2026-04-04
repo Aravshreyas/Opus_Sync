@@ -1,5 +1,5 @@
 
-const  asyncHandler  = require("../middlewares/asyncHandler.middleware");
+const asyncHandler = require("../middlewares/asyncHandler.middleware");
 const { HTTPSTATUS } = require("../config/http.config");
 const { Permissions } = require("../enums/role.enum");
 const { getMemberRoleInWorkspace } = require("../services/member.service");
@@ -16,21 +16,21 @@ const { BadRequestException, UnauthorizedException } = require("../utils/appErro
 const createTaskController = asyncHandler(async (req, res) => {
     const userId = req.user ? req.user._id : null;
     if (!userId) {
-        throw UnauthorizedException("User not authenticated");
+        throw new UnauthorizedException("User not authenticated");
     }
 
-    const { title, description, status, priority, dueDate, assignedTo } = req.body; 
+    const { title, description, status, priority, dueDate, assignedTo } = req.body;
     const projectId = req.params.projectId;
     const workspaceId = req.params.workspaceId;
 
     if (!title) {
-        throw BadRequestException("Title is required");
+        throw new BadRequestException("Title is required");
     }
     if (!projectId) {
-        throw BadRequestException("Project ID is required");
+        throw new BadRequestException("Project ID is required");
     }
     if (!workspaceId) {
-        throw BadRequestException("Workspace ID is required");
+        throw new BadRequestException("Workspace ID is required");
     }
 
     const { role } = await getMemberRoleInWorkspace(userId, workspaceId);
@@ -54,7 +54,7 @@ const createTaskController = asyncHandler(async (req, res) => {
 const updateTaskController = asyncHandler(async (req, res) => {
     const userId = req.user ? req.user._id : null;
     if (!userId) {
-        throw UnauthorizedException("User not authenticated");
+        throw new UnauthorizedException("User not authenticated");
     }
 
     const { title, description, status, priority, dueDate, assignedTo } = req.body; // Assuming these fields
@@ -63,13 +63,13 @@ const updateTaskController = asyncHandler(async (req, res) => {
     const workspaceId = req.params.workspaceId;
 
     if (!taskId) {
-        throw BadRequestException("Task ID is required");
+        throw new BadRequestException("Task ID is required");
     }
     if (!projectId) {
-        throw BadRequestException("Project ID is required");
+        throw new BadRequestException("Project ID is required");
     }
     if (!workspaceId) {
-        throw BadRequestException("Workspace ID is required");
+        throw new BadRequestException("Workspace ID is required");
     }
 
     const { role } = await getMemberRoleInWorkspace(userId, workspaceId);
@@ -93,12 +93,12 @@ const updateTaskController = asyncHandler(async (req, res) => {
 const getAllTasksController = asyncHandler(async (req, res) => {
     const userId = req.user ? req.user._id : null;
     if (!userId) {
-        throw UnauthorizedException("User not authenticated");
+        throw new UnauthorizedException("User not authenticated");
     }
 
     const workspaceId = req.params.workspaceId;
     if (!workspaceId) {
-        throw BadRequestException("Workspace ID is required");
+        throw new BadRequestException("Workspace ID is required");
     }
 
     const filters = {
@@ -129,7 +129,7 @@ const getAllTasksController = asyncHandler(async (req, res) => {
 const getTaskByIdController = asyncHandler(async (req, res) => {
     const userId = req.user ? req.user._id : null;
     if (!userId) {
-        throw UnauthorizedException("User not authenticated");
+        throw new UnauthorizedException("User not authenticated");
     }
 
     const taskId = req.params.id;
@@ -137,13 +137,13 @@ const getTaskByIdController = asyncHandler(async (req, res) => {
     const workspaceId = req.params.workspaceId;
 
     if (!taskId) {
-        throw BadRequestException("Task ID is required");
+        throw new BadRequestException("Task ID is required");
     }
     if (!projectId) {
-        throw BadRequestException("Project ID is required");
+        throw new BadRequestException("Project ID is required");
     }
     if (!workspaceId) {
-        throw BadRequestException("Workspace ID is required");
+        throw new BadRequestException("Workspace ID is required");
     }
 
     const { role } = await getMemberRoleInWorkspace(userId, workspaceId);
@@ -160,17 +160,17 @@ const getTaskByIdController = asyncHandler(async (req, res) => {
 const deleteTaskController = asyncHandler(async (req, res) => {
     const userId = req.user ? req.user._id : null;
     if (!userId) {
-        throw UnauthorizedException("User not authenticated");
+        throw new UnauthorizedException("User not authenticated");
     }
 
     const taskId = req.params.id;
     const workspaceId = req.params.workspaceId;
 
     if (!taskId) {
-        throw BadRequestException("Task ID is required");
+        throw new BadRequestException("Task ID is required");
     }
     if (!workspaceId) {
-        throw BadRequestException("Workspace ID is required");
+        throw new BadRequestException("Workspace ID is required");
     }
 
     const { role } = await getMemberRoleInWorkspace(userId, workspaceId);

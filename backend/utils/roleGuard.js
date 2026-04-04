@@ -1,9 +1,9 @@
 // utils/roleGuard.js
-const { PermissionType, Permissions } = require("../enums/role.enum");
+const { Permissions } = require("../enums/role.enum");
 const { UnauthorizedException } = require("./appError");
 const { RolePermissions } = require("./role-permission");
 
-const   roleGuard = (role, requiredPermissions) => {
+const roleGuard = (role, requiredPermissions) => {
     const permissions = RolePermissions[role];
 
     const hasPermission = requiredPermissions.every((permission) =>
@@ -11,7 +11,7 @@ const   roleGuard = (role, requiredPermissions) => {
     );
 
     if (!hasPermission) {
-        throw  UnauthorizedException(
+        throw new UnauthorizedException(
             "You do not have the necessary permissions to perform this action"
         );
     }

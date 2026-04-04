@@ -5,6 +5,7 @@ import {
     VideoConference, // Import the all-in-one component
 } from '@livekit/components-react';
 import { useSocket } from '../../context/SocketContext';
+import { useToast } from '../../context/ToastContext';
 import { Check, X } from 'lucide-react';
 import '@livekit/components-styles';
 import '@livekit/components-styles/prefabs'; // Also good to have here for clarity
@@ -24,8 +25,9 @@ const LobbyNotification = ({ guest, onAdmit, onDeny }) => (
     </div>
 );
 
-const GroupMeetingRoom = ({ token, roomName, onClose, videoDeviceId, audioDeviceId,initialVideoEnabled,initialAudioEnabled, }) => {
+const GroupMeetingRoom = ({ token, roomName, onClose, videoDeviceId, audioDeviceId, initialVideoEnabled, initialAudioEnabled, }) => {
     const { socket } = useSocket();
+    const { toast } = useToast();
     const [waitingGuests, setWaitingGuests] = useState([]);
 
     // This logic for listening for and managing lobby requests remains the same.
@@ -60,13 +62,13 @@ const GroupMeetingRoom = ({ token, roomName, onClose, videoDeviceId, audioDevice
                 onDisconnected={onClose}
                 onError={(error) => {
                     console.error("LiveKit Room Connection Error:", error);
-                    alert(`Error connecting to meeting: ${error.message}`);
+                    toast.error('Connection error', error.message);
                     onClose();
                 }}
             >
                 {/* We replaced the complex custom layout with this single, powerful component */}
                 <VideoConference />
-                
+
                 {/* This is still recommended by LiveKit to ensure all audio plays correctly */}
                 <RoomAudioRenderer />
             </LiveKitRoom>

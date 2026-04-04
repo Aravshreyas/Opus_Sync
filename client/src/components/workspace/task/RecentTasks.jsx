@@ -1,3 +1,4 @@
+import AppLoader from "../../common/AppLoader";
 import { useState, useEffect } from "react";
 // Removed: import { Avatar, AvatarFallback, AvatarImage } from "../../../components/ui/avatar";
 import { Badge } from "../../../components/ui/badge";
@@ -8,7 +9,7 @@ import axios from "axios";
 import { transformStatusEnum } from "../../../lib/helper"; // Keep transformStatusEnum
 import UserAvatar from "../../../components/common/UserAvatar"; // Import UserAvatar
 import { format } from "date-fns";
-import { Loader } from "lucide-react";
+
 
 const RecentTasks = () => {
   const workspaceId = useWorkspaceId();
@@ -46,7 +47,7 @@ const RecentTasks = () => {
   return (
     <div className="flex flex-col space-y-6">
       {isLoading ? (
-        <Loader className="w-8 h-8 animate-spin place-self-center" />
+        <AppLoader size="sm" />
       ) : error ? (
         <div className="font-semibold text-sm text-red-500 text-center py-5">{error}</div>
       ) : tasks.length === 0 ? (

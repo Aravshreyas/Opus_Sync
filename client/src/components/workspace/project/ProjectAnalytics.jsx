@@ -1,7 +1,8 @@
+import AppLoader from "../../common/AppLoader";
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import axios from "axios";
-import { Loader2, AlertTriangle } from "lucide-react";
+import { AlertTriangle } from 'lucide-react';
 
 const ProjectAnalytics = ({ refreshKey }) => {
   const { workspaceId, projectId } = useParams();
@@ -82,7 +83,7 @@ const ProjectAnalytics = ({ refreshKey }) => {
   if (loading) {
     return (
       <div className="flex items-center justify-center p-4">
-        <Loader2 className="w-6 h-6 animate-spin text-indigo-600" />
+        <AppLoader size="sm" />
         <span className="ml-2 text-gray-600">Loading analytics...</span>
       </div>
     );

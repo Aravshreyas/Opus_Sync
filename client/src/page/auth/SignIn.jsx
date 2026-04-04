@@ -5,7 +5,7 @@ import { useAuth } from "../../context/auth-context";
 import { AudioLines } from "lucide-react";
 import Button from "../../components/ui/Button";
 import { FcGoogle } from "react-icons/fc";
-import { Loader } from "lucide-react";
+import AppLoader from "../../components/common/AppLoader";
 
 function SignIn() {
   const navigate = useNavigate();
@@ -59,7 +59,7 @@ function SignIn() {
         sessionStorage.setItem("accessToken", token);
       }
 
-      const workspaceId = user.currentWorkspace; // Use the string directly since it's not an object
+      const workspaceId = typeof user.currentWorkspace === 'object' ? user.currentWorkspace?._id : user.currentWorkspace;
       const decodedUrl = returnUrl ? decodeURIComponent(returnUrl) : null;
       navigate(decodedUrl || `/workspace/${workspaceId || "default"}`);
     } catch (err) {
@@ -139,7 +139,7 @@ function SignIn() {
                         <div className="flex items-center">
                           <label className="text-sm">Password</label>
                           <Link
-                            to="/forgot-password" 
+                            to="/forgot-password"
                             className="ml-auto text-sm  hover:text-indigo-500 underline-offset-4 hover:underline"
                           >
                             Forgot your password?
@@ -163,7 +163,7 @@ function SignIn() {
                       type="submit"
                       className="w-full bg-black text-white hover:bg-black/90"
                     >
-                      {isPending && <Loader className="animate-spin mr-2" />}
+                      {isPending && <AppLoader size="sm" />}
                       Login
                     </Button>
                   </div>

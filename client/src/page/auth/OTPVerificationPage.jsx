@@ -1,8 +1,9 @@
+import AppLoader from "../../components/common/AppLoader";
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../../context/auth-context'; // Adjust path if needed
-import { Loader2, AudioLines } from 'lucide-react';
+import { AudioLines } from 'lucide-react';
 
 // Helper to detect problematic Apple browsers (Safari on macOS or any iOS browser)
 const isAppleDevice = () => {
@@ -135,7 +136,7 @@ const OTPVerificationPage = () => {
               disabled={isLoading}
               className="w-full bg-black text-white py-3 rounded-md font-semibold hover:bg-gray-800 transition disabled:opacity-50 flex items-center justify-center"
             >
-              {isLoading && <Loader2 className="animate-spin mr-2 h-5 w-5" />}
+              {isLoading && <AppLoader size="sm" />}
               {isLoading ? "Verifying..." : "Verify Account"}
             </button>
           </form>

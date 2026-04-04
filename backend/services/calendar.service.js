@@ -22,7 +22,8 @@ const getCalendarEventsService = async (userId, workspaceId) => {
             type: 'meeting',
             description: meeting.description,
             participants: meeting.participants,
-            meetingId: meeting.meetingId
+            meetingId: meeting.meetingId,
+             createdBy: meeting.createdBy,
         }
     }));
 

@@ -7,7 +7,8 @@ import startOfWeek from 'date-fns/startOfWeek';
 import getDay from 'date-fns/getDay';
 import enUS from 'date-fns/locale/en-US';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
-import { Loader2 } from 'lucide-react';
+import { useToast } from '../../context/ToastContext';
+import AppLoader from "../../components/common/AppLoader";
 import EventDetailsModal from '../../components/calendar/EventDetailsModal';
 import CustomCalendarToolbar from '../../components/calendar/CustomCalendarToolbar'; // Import custom toolbar
 import ScheduleMeetingModal from '../../components/meet/ScheduleMeetingModal'; // Import scheduling modal
@@ -16,11 +17,12 @@ const locales = { 'en-US': enUS };
 const localizer = dateFnsLocalizer({ format, parse, startOfWeek, getDay, locales });
 
 const CalendarPage = () => {
+    const { toast } = useToast();
     const [events, setEvents] = useState([]);
     const [contacts, setContacts] = useState([]); // For the scheduling modal
     const [loading, setLoading] = useState(true);
     const [selectedEvent, setSelectedEvent] = useState(null);
-    
+
     // --- NEW STATE FOR FULLY CONTROLLED CALENDAR ---
     const [date, setDate] = useState(new Date());
     const [view, setView] = useState(Views.MONTH);
@@ -37,8 +39,9 @@ const CalendarPage = () => {
                 end: new Date(event.end),
             }));
             setEvents(formattedEvents);
-        } catch (error) {
-            console.error("Failed to fetch calendar events:", error);
+        } catch (err) {
+            console.error("Error fetching events:", err);
+            toast.error(err.response?.data?.message || "Could not fetch calendar data.");
         } finally {
             setLoading(false);
         }
@@ -59,7 +62,7 @@ const CalendarPage = () => {
     // --- NEW HANDLERS FOR CALENDAR INTERACTIVITY ---
     const handleNavigate = useCallback((newDate) => setDate(newDate), [setDate]);
     const handleView = useCallback((newView) => setView(newView), [setView]);
-    
+
     const handleSelectSlot = useCallback((slot) => {
         setSlotInfo(slot);
         setIsScheduleModalOpen(true);
@@ -74,7 +77,7 @@ const CalendarPage = () => {
     };
 
     if (loading) {
-        return <div className="flex justify-center items-center h-screen"><Loader2 className="animate-spin h-8 w-8 text-indigo-600"/></div>;
+        return <AppLoader fullPage label="Loading calendar..." />;
     }
 
     return (
@@ -107,7 +110,7 @@ const CalendarPage = () => {
             </div>
 
             <EventDetailsModal event={selectedEvent} onClose={() => setSelectedEvent(null)} />
-            <ScheduleMeetingModal 
+            <ScheduleMeetingModal
                 isOpen={isScheduleModalOpen}
                 onClose={() => setIsScheduleModalOpen(false)}
                 contacts={contacts}

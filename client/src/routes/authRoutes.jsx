@@ -8,12 +8,12 @@ const AuthRoute = () => {
   const { user } = useAuth();
   const _isAuthRoute = isAuthRoute(location.pathname);
 
-  console.log("AuthRoute", { user, pathname: location.pathname }); 
+  console.log("AuthRoute", { user, pathname: location.pathname });
 
   if (!_isAuthRoute || !user) return <Outlet />;
 
-  const workspaceId = user?.currentWorkspace || "default";
-  return <Navigate to={`/workspace/${workspaceId}`} replace />;
+  const workspaceId = typeof user?.currentWorkspace === 'object' ? user?.currentWorkspace?._id : user?.currentWorkspace;
+  return <Navigate to={`/workspace/${workspaceId || "default"}`} replace />;
 };
 
 export default AuthRoute;

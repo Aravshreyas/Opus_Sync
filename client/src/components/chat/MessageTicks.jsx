@@ -3,13 +3,12 @@ import { Check, CheckCheck } from 'lucide-react';
 
 const MessageTicks = ({ status }) => {
     if (status === 'read') {
-        return <CheckCheck size={16} className="text-blue-500" />;
+        return <CheckCheck size={14} className="text-blue-300" />;
     }
     if (status === 'delivered') {
-        return <CheckCheck size={16} className="text-slate-400" />;
+        return <CheckCheck size={14} className="text-indigo-200" />;
     }
-    // Default is 'sent'
-    return <Check size={16} className="text-slate-400" />;
+    return <Check size={14} className="text-indigo-200" />;
 };
 
 export default MessageTicks;

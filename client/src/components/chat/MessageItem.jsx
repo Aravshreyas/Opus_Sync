@@ -1,25 +1,31 @@
 import React from 'react';
 import UserAvatar from '../common/UserAvatar';
-import MessageTicks from './MessageTicks'; // Import the new component
+import MessageTicks from './MessageTicks';
 
 const MessageItem = ({ message, isOwnMessage }) => {
-    if (!message?.senderId?._id) return null; 
+    if (!message) return null;
+    // senderId can be a populated object {_id, name, ...} or a plain string
+    const senderObj = typeof message.senderId === 'object' ? message.senderId : { _id: message.senderId, name: '?' };
+
+    const timeString = new Date(message.createdAt).toLocaleTimeString([], {
+        hour: '2-digit', minute: '2-digit', hour12: true
+    });
 
     return (
-        <div className={`flex items-end gap-2 my-2 ${isOwnMessage ? 'justify-end' : 'justify-start'}`}>
-            {!isOwnMessage && <UserAvatar user={message.senderId} size={8} />}
-            <div className={`px-3 py-2 rounded-lg max-w-sm md:max-w-md break-words shadow-sm ${
-                isOwnMessage ? 'bg-indigo-600 text-white' : 'bg-slate-200 text-slate-800'
-            }`}>
-                <p className="text-sm pb-1">{message.content}</p>
-                {isOwnMessage && (
-                    <div className="flex justify-end items-center gap-1 -mb-1 -mr-1">
-                        <span className="text-xs text-indigo-200/75">
-                            {new Date(message.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })}
-                        </span>
-                        <MessageTicks status={message.status} />
-                    </div>
-                )}
+        <div className={`flex items-end gap-1.5 my-1.5 ${isOwnMessage ? 'justify-end' : 'justify-start'}`}>
+            {!isOwnMessage && <UserAvatar user={senderObj} size={7} />}
+            <div className={`px-3 py-1.5 rounded-2xl max-w-[70%] break-words ${isOwnMessage
+                ? 'bg-indigo-600 text-white rounded-br-sm'
+                : 'bg-white text-gray-800 border border-gray-200 rounded-bl-sm'
+                }`}>
+                <p className="text-[13px] leading-relaxed">{message.content}</p>
+                <div className={`flex items-center gap-1 mt-0.5 ${isOwnMessage ? 'justify-end' : 'justify-start'}`}>
+                    <span className={`text-[10px] leading-none ${isOwnMessage ? 'text-indigo-200' : 'text-gray-400'
+                        }`}>
+                        {timeString}
+                    </span>
+                    {isOwnMessage && <MessageTicks status={message.status} />}
+                </div>
             </div>
         </div>
     );

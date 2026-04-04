@@ -1,7 +1,7 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import { useSocket } from './SocketContext'; // We'll use the socket from our existing context
 
-const OnlineUsersContext = createContext();
+const OnlineUsersContext = createContext({ onlineUsers: [] });
 
 export const useOnlineUsers = () => {
     return useContext(OnlineUsersContext);

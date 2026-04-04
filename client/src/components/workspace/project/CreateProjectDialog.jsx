@@ -7,14 +7,16 @@ import {
   DropdownMenuItem,
 } from "@radix-ui/react-dropdown-menu";
 import axios from "axios";
-import { useNavigate } from "react-router-dom"; // Import useNavigate
+import { useNavigate } from "react-router-dom";
+import { useToast } from '../../../context/ToastContext';
 
 import { customEmojis } from "./custom-emojis";
 
 const DEFAULT_EMOJI = "📊";
 
 const CreateProjectDialog = ({ workspaceId, onSubmit, onClose, project = null }) => {
-  const navigate = useNavigate(); // Initialize navigate
+  const navigate = useNavigate();
+  const { toast } = useToast();
   const isEditMode = Boolean(project);
   const [formData, setFormData] = useState({
     emoji: DEFAULT_EMOJI,
@@ -98,7 +100,7 @@ const CreateProjectDialog = ({ workspaceId, onSubmit, onClose, project = null })
       return;
     }
 
-    if (!window.confirm("Are you sure you want to delete this project? This action cannot be undone.")) {
+    if (!window.confirm("Are you sure you want to delete this project? This cannot be undone.")) {
       return;
     }
 
@@ -109,10 +111,11 @@ const CreateProjectDialog = ({ workspaceId, onSubmit, onClose, project = null })
         `${import.meta.env.VITE_BACKEND_URL}/project/${project._id}/workspace/${workspaceId}/delete`,
         // { withCredentials: true }
       );
-      
+
       // Notify the parent component about the deletion (optional, if parent needs to update state)
-      if (onSubmit) onSubmit({ type: 'delete', id: project._id, workspaceId: workspaceId }); 
-      
+      if (onSubmit) onSubmit({ type: 'delete', id: project._id, workspaceId: workspaceId });
+
+      toast.success('Project deleted', 'The project has been deleted successfully.');
       onClose(); // Close the dialog first
       navigate(`/workspace/${workspaceId}`); // Then navigate to workspace dashboard
 
@@ -124,6 +127,7 @@ const CreateProjectDialog = ({ workspaceId, onSubmit, onClose, project = null })
         err.message ||
         "Failed to delete project";
       setError(errorMessage);
+      toast.error('Deletion failed', errorMessage);
     } finally {
       setDeleting(false);
     }
@@ -229,7 +233,7 @@ const CreateProjectDialog = ({ workspaceId, onSubmit, onClose, project = null })
             </div>
 
             {error && <p className="text-sm text-red-500">{error}</p>}
-            
+
             <div className={`flex ${isEditMode ? "justify-between" : "justify-end"} items-center pt-2`}>
               {isEditMode && (
                 <button

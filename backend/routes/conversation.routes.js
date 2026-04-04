@@ -1,5 +1,4 @@
 const { Router } = require("express");
-const isAuthenticated = require('../middlewares/isAuthenticated.middleware');
 const { getConversationsController, getMessagesController } = require('../controllers/conversation.controller');
 
 const conversationRoutes = Router();

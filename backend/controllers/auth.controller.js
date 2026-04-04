@@ -2,10 +2,10 @@
 const asyncHandler = require("../middlewares/asyncHandler.middleware");
 const { config } = require("../config/app.config");
 const { HTTPSTATUS } = require("../config/http.config");
-const { registerUserService,sendOtpForVerificationService, 
-    verifyOtpService ,requestPasswordResetService,
-  verifyPasswordResetOtpService,
-  resetPasswordService, } = require("../services/auth.service");
+const { registerUserService, sendOtpForVerificationService,
+    verifyOtpService, requestPasswordResetService,
+    verifyPasswordResetOtpService,
+    resetPasswordService, } = require("../services/auth.service");
 const passport = require("passport");
 const jwt = require("jsonwebtoken");
 const UserModel = require("../models/user.model");
@@ -13,68 +13,63 @@ const { BadRequestException } = require("../utils/appError");
 
 const generateToken = (user) => {
     return jwt.sign(
-        { userId: user._id, email: user.email,name: user.name },
+        { userId: user._id, email: user.email, name: user.name },
         process.env.JWT_SECRET,
-        { expiresIn: "1h" }
+        { expiresIn: "7d" } // Increased default to 7 days
     );
 };
 
 const googleLoginCallback = asyncHandler(async (req, res) => {
-  if (!req.user) {
-    return res.status(HTTPSTATUS.UNAUTHORIZED).json({ message: "Google authentication failed" });
-  }
+    if (!req.user) {
+        return res.status(HTTPSTATUS.UNAUTHORIZED).json({ message: "Google authentication failed" });
+    }
 
-  const currentWorkspace = req.user.currentWorkspace;
-  if (!currentWorkspace) {
-    return res.status(HTTPSTATUS.BAD_REQUEST).json({ message: "No workspace assigned" });
-  }
+    const currentWorkspace = req.user.currentWorkspace;
+    const workspaceId = typeof currentWorkspace === 'object' ? currentWorkspace._id : currentWorkspace;
+    if (!workspaceId) {
+        return res.status(HTTPSTATUS.BAD_REQUEST).json({ message: "No workspace assigned" });
+    }
 
-  const token = generateToken(req.user);
+    const token = generateToken(req.user);
 
-  res.cookie("jwt", token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: process.env.NODE_ENV === "production"?"None":"Lax",
-    maxAge: 60 * 60 * 1000,
-  });
-
-  const ua = req.headers['user-agent'] || "";
-  const isSafari = /^((?!chrome|android).)*safari/i.test(ua);
-  const isAppleDevice = /iPad|iPhone|iPod|Macintosh/.test(ua) && isSafari;
-
-  if (isAppleDevice) {
-    // iOS/macOS Safari -> respond with JSON for frontend handling
-    return res.redirect(`${config.FRONTEND_ORIGIN}/google-oauth-success#token=${token}&workspaceId=${currentWorkspace}`);
-
-    return res.status(HTTPSTATUS.OK).json({
-      message: "Google login successful",
-      token,
-      user: req.user.omitPassword(),
-      workspaceId: currentWorkspace,
+    res.cookie("jwt", token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
+        maxAge: 7 * 24 * 60 * 60 * 1000,
     });
-  } else {
-    // Other devices -> redirect directly from backend
-    return res.redirect(`${config.FRONTEND_ORIGIN}/workspace/${currentWorkspace}`);
-  }
+
+    const ua = req.headers['user-agent'] || "";
+    const isSafari = /^((?!chrome|android).)*safari/i.test(ua);
+    const isAppleDevice = /iPad|iPhone|iPod|Macintosh/.test(ua) && isSafari;
+
+    if (isAppleDevice) {
+        // iOS/macOS Safari -> respond with JSON for frontend handling
+        // We are standardizing to redirect in all Apple devices
+        return res.redirect(`${config.FRONTEND_ORIGIN}/google-oauth-success#token=${token}&workspaceId=${workspaceId}`);
+    } else {
+        console.log(currentWorkspace)
+        return res.redirect(`${config.FRONTEND_ORIGIN}/workspace/${workspaceId}`);
+    }
 })
 
 const registerUserController = asyncHandler(async (req, res) => {
     const { email, password, name } = req.body;
 
     if (!email) {
-        throw BadRequestException("Email is required");
+        throw new BadRequestException("Email is required");
     }
     if (!password) {
-        throw BadRequestException("Password is required");
+        throw new BadRequestException("Password is required");
     }
     if (!name) {
-        throw BadRequestException("Name is required");
+        throw new BadRequestException("Name is required");
     }
 
     // Step 1: Create an unverified user account.
     // The service should handle cases where an unverified user with this email already exists.
     const { email: userEmail } = await registerUserService({ email, password, name });
-    
+
     // Step 2: Trigger the OTP email to be sent.
     await sendOtpForVerificationService({ email: userEmail });
 
@@ -93,11 +88,11 @@ const verifyOtpController = asyncHandler(async (req, res) => {
 
     // If verification is successful, log the user in by creating and sending a token
     const token = generateToken(user);
-    
+
     res.cookie("jwt", token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
-        sameSite: process.env.NODE_ENV === "production"?"None":"Lax",
+        sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
         path: "/",
         maxAge: 24 * 60 * 60 * 1000 // 24 hours
     });
@@ -115,7 +110,7 @@ const resendOtpController = asyncHandler(async (req, res) => {
     if (!email) {
         throw new BadRequestException("Email is required.");
     }
-    
+
     // The service handles finding the user and sending the new OTP
     await sendOtpForVerificationService({ email });
 
@@ -131,7 +126,7 @@ const loginController = asyncHandler(async (req, res, next) => {
         res.cookie("jwt", token, {
             httpOnly: true,
             secure: process.env.NODE_ENV === "production",
-            sameSite: process.env.NODE_ENV === "production"?"None":"Lax",
+            sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
             maxAge: 60 * 60 * 1000
         });
         return res.status(HTTPSTATUS.OK).json({
@@ -146,16 +141,16 @@ const loginController = asyncHandler(async (req, res, next) => {
 const forgotPasswordController = asyncHandler(async (req, res) => {
     const { email } = req.body;
     if (!email) throw new BadRequestException("Please provide an email address.");
-    
+
     const { message } = await requestPasswordResetService({ email });
-    
+
     return res.status(HTTPSTATUS.OK).json({ message });
 });
 
 // --- NEW controller to verify OTP and return a temporary token ---
 const verifyPasswordResetOtpController = asyncHandler(async (req, res) => {
     const { email, otp } = req.body;
-    
+
     const { passwordResetToken } = await verifyPasswordResetOtpService({ email, otp });
 
     return res.status(HTTPSTATUS.OK).json({
@@ -167,7 +162,7 @@ const verifyPasswordResetOtpController = asyncHandler(async (req, res) => {
 // --- MODIFIED controller to use the temporary token ---
 const resetPasswordController = asyncHandler(async (req, res) => {
     const { resetToken, newPassword } = req.body;
-    
+
     const { message } = await resetPasswordService({ resetToken, newPassword });
 
     return res.status(HTTPSTATUS.OK).json({ message });
@@ -177,9 +172,9 @@ const logOutController = asyncHandler(async (req, res) => {
     res.clearCookie("jwt", {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
-        sameSite: process.env.NODE_ENV === "production"?"None":"Lax"
+        sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax"
     });
     return res.status(HTTPSTATUS.OK).json({ message: "Logged out successfully - discard token on client" });
 });
 
-module.exports = { googleLoginCallback, registerUserController, loginController, logOutController,verifyOtpController, resendOtpController,forgotPasswordController,verifyPasswordResetOtpController,resetPasswordController, };
+module.exports = { googleLoginCallback, registerUserController, loginController, logOutController, verifyOtpController, resendOtpController, forgotPasswordController, verifyPasswordResetOtpController, resetPasswordController, };

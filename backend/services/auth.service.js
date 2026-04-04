@@ -98,10 +98,10 @@ const registerUserService = async (body) => {
     if (existingUser) {
       // If user exists but is not verified, allow the process to continue to resend OTP
       if (!existingUser.isVerified) {
-          console.log(`Existing unverified user found for ${email}. Proceeding to send OTP.`);
-          return { userId: existingUser._id, email: existingUser.email };
+        console.log(`Existing unverified user found for ${email}. Proceeding to send OTP.`);
+        return { userId: existingUser._id, email: existingUser.email };
       }
-      throw  BadRequestException("Email already exists and is verified.");
+      throw new BadRequestException("Email already exists and is verified.");
     }
 
     const user = new UserModel({
@@ -151,21 +151,21 @@ const registerUserService = async (body) => {
 const verifyUserService = async ({ email, password, provider = ProviderEnum.EMAIL }) => {
   const account = await AccountModel.findOne({ provider, providerId: email });
   if (!account) {
-    throw  UnauthorizedException("Invalid email or password");
+    throw new BadRequestException("Invalid email or password");
   }
 
   const user = await UserModel.findById(account.userId).select("+password"); // Select password for comparison
   if (!user) {
-    throw  NotFoundException("User not found for the given account");
+    throw new NotFoundException("User not found for the given account");
   }
 
   if (!user.isVerified) {
-    throw  UnauthorizedException("Account not verified. Please check your email for an OTP.");
+    throw new BadRequestException("Account not verified. Please check your email for an OTP.");
   }
 
   const isMatch = await user.comparePassword(password);
   if (!isMatch) {
-    throw  UnauthorizedException("Invalid email or password");
+    throw new UnauthorizedException("Invalid email or password");
   }
 
   // Re-fetch without password for the return payload
@@ -176,143 +176,143 @@ const verifyUserService = async ({ email, password, provider = ProviderEnum.EMAI
 // --- NEW SERVICES FOR OTP FLOW ---
 
 const sendOtpForVerificationService = async ({ email }) => {
-    const user = await UserModel.findOne({ email });
-    if (!user) throw  BadRequestException("No account found with this email.");
-    if (user.isVerified) throw  BadRequestException("This account is already verified.");
-    
-    await OtpModel.deleteMany({ email });
+  const user = await UserModel.findOne({ email });
+  if (!user) throw new NotFoundException("No account found with this email.");
+  if (user.isVerified) throw new BadRequestException("This account is already verified.");
 
-    const otp = otpGenerator.generate(6, { 
-        upperCaseAlphabets: false, 
-        lowerCaseAlphabets: false, 
-        specialChars: false 
+  await OtpModel.deleteMany({ email });
+
+  const otp = otpGenerator.generate(6, {
+    upperCaseAlphabets: false,
+    lowerCaseAlphabets: false,
+    specialChars: false
+  });
+
+  console.log(`Generated OTP for ${email}: ${otp}`); // For debugging
+
+  const hashedOtp = await hashValue(otp);
+  await OtpModel.create({ email, otp: hashedOtp });
+
+  try {
+    await sendEmail({
+      email: email,
+      subject: 'Your Opus Sync Verification Code',
+      message: `Your one-time verification code is: ${otp}\n\nIt is valid for 5 minutes.`
     });
+  } catch (emailError) {
+    console.error("Email sending error:", emailError);
+    throw new Error("Could not send OTP email. Please try again later.");
+  }
 
-    console.log(`Generated OTP for ${email}: ${otp}`); // For debugging
-
-    const hashedOtp = await hashValue(otp);
-    await OtpModel.create({ email, otp: hashedOtp });
-
-    try {
-        await sendEmail({
-            email: email,
-            subject: 'Your Opus Sync Verification Code',
-            message: `Your one-time verification code is: ${otp}\n\nIt is valid for 5 minutes.`
-        });
-    } catch (emailError) {
-        console.error("Email sending error:", emailError);
-        throw new Error("Could not send OTP email. Please try again later.");
-    }
-    
-    return { message: "OTP sent successfully. Please check your email." };
+  return { message: "OTP sent successfully. Please check your email." };
 };
 
 const verifyOtpService = async ({ email, otp }) => {
-    if (!email || !otp) throw  BadRequestException("Email and OTP are required.");
+  if (!email || !otp) throw new BadRequestException("Email and OTP are required.");
 
-    const otpRecord = await OtpModel.findOne({ email });
-    if (!otpRecord) throw  BadRequestException("OTP is invalid or has expired. Please request a new one.");
+  const otpRecord = await OtpModel.findOne({ email });
+  if (!otpRecord) throw new BadRequestException("OTP is invalid or has expired. Please request a new one.");
 
-    const isMatch = await compareValue(otp, otpRecord.otp);
-    if (!isMatch) throw  UnauthorizedException("Invalid OTP. Please try again.");
+  const isMatch = await compareValue(otp, otpRecord.otp);
+  if (!isMatch) throw new UnauthorizedException("Invalid OTP. Please try again.");
 
-    const user = await UserModel.findOneAndUpdate(
-        { email }, 
-        { isVerified: true }, 
-        { new: true }
-    )
+  const user = await UserModel.findOneAndUpdate(
+    { email },
+    { isVerified: true },
+    { new: true }
+  )
 
-    await OtpModel.deleteOne({ email });
+  await OtpModel.deleteOne({ email });
 
-    if (!user) throw  NotFoundException("User not found after verification.");
-    
-    return { user };
+  if (!user) throw new NotFoundException("User not found after verification.");
+
+  return { user };
 };
 
 const requestPasswordResetService = async ({ email }) => {
-    const user = await UserModel.findOne({ email });
-    if (!user) {
-        console.log(`Password reset requested for non-existent email: ${email}`);
-        return; 
-    }
-    await OtpModel.deleteMany({ userId: user._id }); // Use userId if your OTP model has it, else email
-    const otp = otpGenerator.generate(6, { upperCaseAlphabets: false, lowerCaseAlphabets: false, specialChars: false });
-    console.log(`Generated OTP for ${email}: ${otp}`);
-    const hashedOtp = await hashValue(otp);
-    await OtpModel.create({ email, otp: hashedOtp });
-    const resetUrl = `${process.env.FRONTEND_ORIGIN}/verify-password-otp`; // The link can just point to the OTP page
-    const message = `You requested a password reset. Your verification code is: ${otp}\n\nThis code is valid for 5 minutes.\n\nPlease enter this code on the verification page: ${resetUrl}`;
-    try {
-        await sendEmail({ email: user.email, subject: 'Password Reset Code', message });
-    } catch (emailError) {
-        console.error("Password reset email sending error:", emailError);
-        throw new Error("Could not send password reset email.");
-    }
-    return { message: "If an account with this email exists, an OTP has been sent." };
+  const user = await UserModel.findOne({ email });
+  if (!user) {
+    console.log(`Password reset requested for non-existent email: ${email}`);
+    return;
+  }
+  await OtpModel.deleteMany({ userId: user._id }); // Use userId if your OTP model has it, else email
+  const otp = otpGenerator.generate(6, { upperCaseAlphabets: false, lowerCaseAlphabets: false, specialChars: false });
+  console.log(`Generated OTP for ${email}: ${otp}`);
+  const hashedOtp = await hashValue(otp);
+  await OtpModel.create({ email, otp: hashedOtp });
+  const resetUrl = `${process.env.FRONTEND_ORIGIN}/verify-password-otp`; // The link can just point to the OTP page
+  const message = `You requested a password reset. Your verification code is: ${otp}\n\nThis code is valid for 5 minutes.\n\nPlease enter this code on the verification page: ${resetUrl}`;
+  try {
+    await sendEmail({ email: user.email, subject: 'Password Reset Code', message });
+  } catch (emailError) {
+    console.error("Password reset email sending error:", emailError);
+    throw new Error("Could not send password reset email.");
+  }
+  return { message: "If an account with this email exists, an OTP has been sent." };
 };
 
 // NEW service to verify the OTP and issue a temporary token
 const verifyPasswordResetOtpService = async ({ email, otp }) => {
-    if (!email || !otp) throw new BadRequestException("Email and OTP are required.");
+  if (!email || !otp) throw new BadRequestException("Email and OTP are required.");
 
-    const otpRecord = await OtpModel.findOne({ email });
-    if (!otpRecord) throw new BadRequestException("OTP is invalid or has expired. Please request a new one.");
+  const otpRecord = await OtpModel.findOne({ email });
+  if (!otpRecord) throw new BadRequestException("OTP is invalid or has expired. Please request a new one.");
 
-    const isOtpMatch = await compareValue(otp, otpRecord.otp);
-    if (!isOtpMatch) throw new UnauthorizedException("Invalid OTP. Please try again.");
+  const isOtpMatch = await compareValue(otp, otpRecord.otp);
+  if (!isOtpMatch) throw new UnauthorizedException("Invalid OTP. Please try again.");
 
-    const user = await UserModel.findOne({ email });
-    if (!user) throw new NotFoundException("User associated with OTP not found.");
+  const user = await UserModel.findOne({ email });
+  if (!user) throw new NotFoundException("User associated with OTP not found.");
 
-    // OTP is valid, now create a temporary, single-purpose token for password reset
-    const passwordResetToken = jwt.sign(
-        { userId: user._id, purpose: 'PASSWORD_RESET' },
-        process.env.JWT_SECRET,
-        { expiresIn: '10m' } // This token is valid for only 10 minutes
-    );
+  // OTP is valid, now create a temporary, single-purpose token for password reset
+  const passwordResetToken = jwt.sign(
+    { userId: user._id, purpose: 'PASSWORD_RESET' },
+    process.env.JWT_SECRET,
+    { expiresIn: '10m' } // This token is valid for only 10 minutes
+  );
 
-    await OtpModel.deleteOne({ email }); // Delete the OTP so it can't be used again
+  await OtpModel.deleteOne({ email }); // Delete the OTP so it can't be used again
 
-    return { passwordResetToken };
+  return { passwordResetToken };
 };
 
 
 // MODIFIED service to reset the password using the temporary token
 const resetPasswordService = async ({ resetToken, newPassword }) => {
-    if (!resetToken || !newPassword) {
-        throw new BadRequestException("A reset token and a new password are required.");
-    }
+  if (!resetToken || !newPassword) {
+    throw new BadRequestException("A reset token and a new password are required.");
+  }
 
-    let decoded;
-    try {
-        decoded = jwt.verify(resetToken, process.env.JWT_SECRET);
-    } catch (error) {
-        throw new UnauthorizedException("Invalid or expired password reset token.");
-    }
+  let decoded;
+  try {
+    decoded = jwt.verify(resetToken, process.env.JWT_SECRET);
+  } catch (error) {
+    throw new UnauthorizedException("Invalid or expired password reset token.");
+  }
 
-    // Ensure the token's purpose is correct
-    if (decoded.purpose !== 'PASSWORD_RESET') {
-        throw new UnauthorizedException("Invalid token purpose.");
-    }
-    
-    const user = await UserModel.findById(decoded.userId);
-    if (!user) {
-        throw new NotFoundException("User not found.");
-    }
+  // Ensure the token's purpose is correct
+  if (decoded.purpose !== 'PASSWORD_RESET') {
+    throw new UnauthorizedException("Invalid token purpose.");
+  }
 
-    user.password = newPassword; // The pre-save hook in your User model will hash this
-    await user.save();
+  const user = await UserModel.findById(decoded.userId);
+  if (!user) {
+    throw new NotFoundException("User not found.");
+  }
 
-    return { message: "Password has been reset successfully. You can now log in." };
+  user.password = newPassword; // The pre-save hook in your User model will hash this
+  await user.save();
+
+  return { message: "Password has been reset successfully. You can now log in." };
 };
 
 module.exports = {
   loginOrCreateAccountService,
   registerUserService,
   verifyUserService,
-  sendOtpForVerificationService, 
-  verifyOtpService,               
-   requestPasswordResetService,
+  sendOtpForVerificationService,
+  verifyOtpService,
+  requestPasswordResetService,
   verifyPasswordResetOtpService,
   resetPasswordService,
 };

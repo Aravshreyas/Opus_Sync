@@ -1,13 +1,13 @@
 import React, { useEffect, useState, useCallback, useRef, useMemo } from "react";
 import axios from "axios";
-import { 
-    Copy, Users, Mail, ShieldCheck, Loader2, UserPlus, 
-    Info, AlertTriangle, CheckCircle, FileText, Edit3, Check, X as IconX 
-} from "lucide-react";
+import { Copy, Users, Mail, ShieldCheck, UserPlus,
+  Info, AlertTriangle, CheckCircle, FileText, Edit3, Check, X as IconX } from 'lucide-react';
 import { useParams } from "react-router-dom";
 import { useAuth } from "../../context/auth-context";
 import WorkspaceAvatar from "../../components/common/WorkspaceAvatar";
 import UserAvatar from "../../components/common/UserAvatar";
+import { useToast } from '../../context/ToastContext';
+import AppLoader from "../../components/common/AppLoader";
 
 const getRoleBadgeClasses = (roleName) => {
   const lowerRole = String(roleName || "").toLowerCase();
@@ -24,18 +24,19 @@ const getRoleBadgeClasses = (roleName) => {
 };
 
 const getIconColorClassForBadge = (roleName) => {
-    const lowerRole = String(roleName || "").toLowerCase();
-    switch (lowerRole) {
-      case "owner": return "text-purple-700";
-      case "admin": return "text-blue-700";
-      case "member": return "text-green-700";
-      default: return "text-gray-700";
-    }
+  const lowerRole = String(roleName || "").toLowerCase();
+  switch (lowerRole) {
+    case "owner": return "text-purple-700";
+    case "admin": return "text-blue-700";
+    case "member": return "text-green-700";
+    default: return "text-gray-700";
+  }
 };
 
 export default function Members() {
   const { user } = useAuth();
-  const { id: paramWorkspaceId } = useParams();
+  const { toast } = useToast();
+  const { workspaceId: paramWorkspaceId } = useParams();
   const workspaceId = paramWorkspaceId || user?.currentWorkspace?._id;
 
   const [workspace, setWorkspace] = useState(null);
@@ -44,19 +45,19 @@ export default function Members() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [inviteLinkCopied, setInviteLinkCopied] = useState(false);
-  
-  const [roleChangeState, setRoleChangeState] = useState({ 
-    memberId: null, 
-    loading: false, 
+
+  const [roleChangeState, setRoleChangeState] = useState({
+    memberId: null,
+    loading: false,
     error: null,
-    success: false 
+    success: false
   });
 
   const [isRolesEditMode, setIsRolesEditMode] = useState(false);
   const [editingRoleForMemberId, setEditingRoleForMemberId] = useState(null);
 
-  const activeDropdownRef = useRef(null); 
-  const activeTriggerRefs = useRef({}); 
+  const activeDropdownRef = useRef(null);
+  const activeTriggerRefs = useRef({});
 
   const assignableRoles = useMemo(() => {
     return allSystemRoles.filter(role => role.name && role.name.toUpperCase() !== 'OWNER');
@@ -101,7 +102,7 @@ export default function Members() {
 
   useEffect(() => {
     if (workspaceId && workspaceId !== "default") {
-        fetchData();
+      fetchData();
     } else {
       setError("No valid workspace selected.");
       setLoading(false);
@@ -128,18 +129,22 @@ export default function Members() {
     };
   }, [editingRoleForMemberId]);
 
-  const handleCopy = () => {
+  const handleCopy = async () => {
     if (workspace?.inviteCode) {
-      const inviteUrl = `${window.location.origin}/invite/workspace/${workspace.inviteCode}/join`;
-      navigator.clipboard.writeText(inviteUrl).then(() => {
+      const inviteLink = `${window.location.origin}/invite/workspace/${workspace.inviteCode}/join`;
+      try {
+        await navigator.clipboard.writeText(inviteLink);
         setInviteLinkCopied(true);
-        setTimeout(() => setInviteLinkCopied(false), 2500);
-      });
+        toast.info('Link copied', 'Workspace invite link copied to clipboard.');
+        setTimeout(() => setInviteLinkCopied(false), 2000);
+      } catch (err) {
+        console.error("Failed to copy:", err);
+      }
     }
   };
 
   const handleAttemptRoleChange = async (memberIdToChange, newRoleId, newRoleName) => {
-    setEditingRoleForMemberId(null); 
+    setEditingRoleForMemberId(null);
     if (!workspaceId || !memberIdToChange || !newRoleId) {
       setRoleChangeState({ memberId: memberIdToChange, loading: false, error: "Internal error: Missing data.", success: false });
       return;
@@ -165,24 +170,26 @@ export default function Members() {
         )
       );
       setRoleChangeState({ memberId: memberIdToChange, loading: false, error: null, success: true });
-      setTimeout(() => setRoleChangeState(prev => ({...prev, memberId: null, success: false})), 2000);
+      toast.success('Role updated', `${memberToUpdate.userId?.name || 'Member'}'s role changed to ${newRoleName}.`);
+      setTimeout(() => setRoleChangeState(prev => ({ ...prev, memberId: null, success: false })), 2000);
     } catch (err) {
       console.error("Error changing member role:", err);
       const errorMessage = err.response?.data?.message || err.message || "Failed to change role.";
       setRoleChangeState({ memberId: memberIdToChange, loading: false, error: errorMessage, success: false });
+      toast.error('Role change failed', errorMessage);
     }
   };
-  
+
   const toggleRoleDropdown = (memberId) => {
     setEditingRoleForMemberId(prev => (prev === memberId ? null : memberId));
   };
-  
+
   const isCurrentUserOwner = user?._id === workspace?.owner;
 
   if (loading && !workspace) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[calc(100vh-theme(space.14))] px-3 lg:px-20 py-10">
-        <Loader2 className="w-10 h-10 animate-spin text-gray-500" />
+        <AppLoader size="sm" />
         <p className="text-lg text-gray-600 mt-4">Loading Workspace Members...</p>
       </div>
     );
@@ -197,7 +204,7 @@ export default function Members() {
       </div>
     );
   }
-  
+
   if (!workspace && !loading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[calc(100vh-theme(space.14))] px-3 lg:px-20 py-10 text-center">
@@ -219,9 +226,9 @@ export default function Members() {
                 {workspace?.name || "Workspace"}
               </h1>
               {workspace?.plan && (
-                  <span className="mt-1.5 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-100 text-indigo-700">
-                      {workspace.plan} Plan
-                  </span>
+                <span className="mt-1.5 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-100 text-indigo-700">
+                  {workspace.plan} Plan
+                </span>
               )}
               {workspace?.description && (
                 <p className="mt-2 text-sm text-gray-600 leading-relaxed max-w-2xl">
@@ -235,16 +242,16 @@ export default function Members() {
         <div className="shrink-0 bg-gray-200 h-[1px] w-full my-8" />
 
         <main>
-          <div className="w-full max-w-3xl mx-auto"> 
-            <section className="mb-8"> 
+          <div className="w-full max-w-3xl mx-auto">
+            <section className="mb-8">
               <div className="flex items-center justify-between pb-1">
                 <h2 className="text-xl font-semibold text-gray-800 flex items-center">
-                    <Users size={22} className="mr-2.5 text-gray-500"/> Workspace Members
+                  <Users size={22} className="mr-2.5 text-gray-500" /> Workspace Members
                 </h2>
                 {!loading && members && (
-                    <span className="text-sm font-medium text-gray-600 bg-gray-100 px-3 py-1 rounded-full">
-                        {members.length} member{members.length !== 1 ? 's' : ''}
-                    </span>
+                  <span className="text-sm font-medium text-gray-600 bg-gray-100 px-3 py-1 rounded-full">
+                    {members.length} member{members.length !== 1 ? 's' : ''}
+                  </span>
                 )}
               </div>
               <p className="text-sm text-gray-600 leading-relaxed mt-2">
@@ -260,21 +267,21 @@ export default function Members() {
                     className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors h-9 px-4 py-2 
                                bg-slate-100 text-slate-700 hover:bg-slate-200 focus-visible:ring-1 focus-visible:ring-slate-400"
                   >
-                    {isRolesEditMode ? <><IconX size={16} className="mr-1"/> Done Editing Roles</> : <><Edit3 size={16} className="mr-1"/> Edit Member Roles</>}
+                    {isRolesEditMode ? <><IconX size={16} className="mr-1" /> Done Editing Roles</> : <><Edit3 size={16} className="mr-1" /> Edit Member Roles</>}
                   </button>
                 </div>
               )}
             </section>
 
             {(error && !members.length && !loading) && (
-                <div className="my-4 p-3 bg-red-50 text-red-700 border border-red-200 rounded-md text-sm">
-                  Could not load member list: {error.includes("members") ? error : "An error occurred."}
-                </div>
+              <div className="my-4 p-3 bg-red-50 text-red-700 border border-red-200 rounded-md text-sm">
+                Could not load member list: {error.includes("members") ? error : "An error occurred."}
+              </div>
             )}
             <div className="shrink-0 bg-gray-200 h-[1px] w-full my-8" />
-             <section className="mb-8"> 
+            <section className="mb-8">
               <h3 className="text-xl font-semibold text-gray-800 mb-2 flex items-center">
-                <UserPlus size={22} className="mr-2.5 text-gray-500"/>Invite Members
+                <UserPlus size={22} className="mr-2.5 text-gray-500" />Invite Members
               </h3>
               <p className="text-sm text-gray-600 leading-relaxed mb-4">
                 Anyone with the invite link can join this workspace.
@@ -307,54 +314,54 @@ export default function Members() {
             </section>
             <div className="shrink-0 bg-gray-200 h-[0.5px] w-full my-8" />
 
-            <section> 
-             {members.length > 0 ? (
+            <section>
+              {members.length > 0 ? (
                 <div className="flow-root">
                   <ul role="list" className="-my-4 divide-y divide-gray-200">
                     {members.map((member) => {
                       const memberUserId = member.userId?._id;
-                      const currentMemberRole = member.role; 
+                      const currentMemberRole = member.role;
                       const roleName = currentMemberRole?.name || "Member";
                       const currentRoleNameCap = roleName.charAt(0).toUpperCase() + roleName.slice(1);
                       const badgeClasses = getRoleBadgeClasses(roleName);
                       const iconColorClass = getIconColorClassForBadge(roleName);
-                      
+
                       const isCurrentMemberTheUser = memberUserId === user?._id;
                       const isMemberTheOwner = workspace?.owner === memberUserId;
                       const canThisMemberRoleBeEditedByOwner = isCurrentUserOwner && !isMemberTheOwner && !isCurrentMemberTheUser;
-                      
+
                       const isThisSpecificDropdownOpen = editingRoleForMemberId === memberUserId;
 
                       return (
                         <li key={memberUserId || member._id} className="py-4">
                           <div className="flex items-center justify-between space-x-4">
                             <div className="flex items-center space-x-3 sm:space-x-4 min-w-0">
-                              <UserAvatar user={member.userId} size={10} /> 
+                              <UserAvatar user={member.userId} size={10} />
                               <div className="min-w-0">
                                 <p className="text-sm font-medium text-gray-900 leading-snug truncate">
                                   {member.userId?.name || "N/A"}
                                   {isCurrentMemberTheUser && <span className="ml-1.5 text-xs text-indigo-600 font-semibold">(You)</span>}
                                 </p>
                                 <p className="text-xs sm:text-sm text-gray-500 mt-0.5 truncate flex items-center gap-1">
-                                  <Mail size={13} className="opacity-60 shrink-0"/> {member.userId?.email || "No email"}
+                                  <Mail size={13} className="opacity-60 shrink-0" /> {member.userId?.email || "No email"}
                                 </p>
                               </div>
                             </div>
 
                             <div className="relative flex items-center gap-2 shrink-0"> {/* Parent needs to be relative for dropdown */}
                               {roleChangeState.loading && roleChangeState.memberId === memberUserId && (
-                                <Loader2 className="w-5 h-5 animate-spin text-gray-400" />
+                                <AppLoader label="" />
                               )}
                               {roleChangeState.success && roleChangeState.memberId === memberUserId && (
                                 <CheckCircle size={18} className="text-green-500" />
                               )}
-                               {roleChangeState.error && roleChangeState.memberId === memberUserId && (
-                                <AlertTriangle size={18} className="text-red-500" title={roleChangeState.error}/>
+                              {roleChangeState.error && roleChangeState.memberId === memberUserId && (
+                                <AlertTriangle size={18} className="text-red-500" title={roleChangeState.error} />
                               )}
-                              
+
                               {/* Logic to show either static badge or editable badge with dropdown */}
-                              {!(roleChangeState.loading && roleChangeState.memberId === memberUserId) && 
-                               !(roleChangeState.success && roleChangeState.memberId === memberUserId) && 
+                              {!(roleChangeState.loading && roleChangeState.memberId === memberUserId) &&
+                                !(roleChangeState.success && roleChangeState.memberId === memberUserId) &&
                                 (isRolesEditMode && canThisMemberRoleBeEditedByOwner ? (
                                   <>
                                     <button
@@ -367,9 +374,9 @@ export default function Members() {
                                       className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-full text-xs font-medium h-7 px-2.5 capitalize transition-opacity hover:opacity-80 cursor-pointer focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-indigo-500 ${badgeClasses}`}
                                       title={`Edit ${member.userId?.name}'s role`}
                                     >
-                                      <ShieldCheck size={14} className={`opacity-90 ${iconColorClass}`}/> 
+                                      <ShieldCheck size={14} className={`opacity-90 ${iconColorClass}`} />
                                       {currentRoleNameCap}
-                                      <Edit3 size={12} className={`ml-1 opacity-70 ${iconColorClass}`}/>
+                                      <Edit3 size={12} className={`ml-1 opacity-70 ${iconColorClass}`} />
                                     </button>
 
                                     {isThisSpecificDropdownOpen && (
@@ -389,7 +396,7 @@ export default function Members() {
                                             className="flex items-center justify-between w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-gray-400"
                                           >
                                             <span>{roleToAssign.name}</span>
-                                            {roleToAssign._id === currentMemberRole?._id && <Check size={16} className="text-indigo-600"/>}
+                                            {roleToAssign._id === currentMemberRole?._id && <Check size={16} className="text-indigo-600" />}
                                           </button>
                                         )) : (
                                           <div className="px-3 py-2 text-sm text-gray-400 italic">No other roles defined</div>
@@ -398,11 +405,11 @@ export default function Members() {
                                     )}
                                   </>
                                 ) : ( // Static badge if not in edit mode or not editable
-                                  <span 
+                                  <span
                                     className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-full text-xs font-medium h-7 px-2.5 capitalize ${badgeClasses}`}
                                     title={`Role: ${currentRoleNameCap}`}
                                   >
-                                    <ShieldCheck size={14} className={`opacity-90 ${iconColorClass}`}/> {currentRoleNameCap}
+                                    <ShieldCheck size={14} className={`opacity-90 ${iconColorClass}`} /> {currentRoleNameCap}
                                   </span>
                                 ))
                               }
@@ -416,11 +423,11 @@ export default function Members() {
               ) : (
                 !loading && (
                   <div className="text-center py-10 border-2 border-dashed border-gray-200 rounded-lg mt-4">
-                      <Users size={40} className="mx-auto text-gray-300 mb-3" />
-                      <h3 className="text-md font-medium text-gray-700">No Other Members Yet</h3>
-                      <p className="text-sm text-gray-500 mt-1">
-                          Invite people to collaborate in this workspace using the link above.
-                      </p>
+                    <Users size={40} className="mx-auto text-gray-300 mb-3" />
+                    <h3 className="text-md font-medium text-gray-700">No Other Members Yet</h3>
+                    <p className="text-sm text-gray-500 mt-1">
+                      Invite people to collaborate in this workspace using the link above.
+                    </p>
                   </div>
                 )
               )}

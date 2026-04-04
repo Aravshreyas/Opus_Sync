@@ -1,40 +1,49 @@
-import React, { useState,useEffect } from 'react';
+import AppLoader from "../common/AppLoader";
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useAuth } from '../../context/auth-context';
+import { useToast } from '../../context/ToastContext';
 import UserAvatar from '../common/UserAvatar';
-import { X, Loader2 } from 'lucide-react';
+import { X, CalendarClock, Users } from 'lucide-react';
 
-const ScheduleMeetingModal = ({ isOpen, onClose, contacts, onMeetingScheduled,slotInfo  }) => {
+const ScheduleMeetingModal = ({ isOpen, onClose, contacts, onMeetingScheduled, slotInfo, editingMeeting }) => {
     const { user } = useAuth();
+    const { toast } = useToast();
     const [title, setTitle] = useState('');
     const [participants, setParticipants] = useState([]);
     const [startTime, setStartTime] = useState('');
     const [endTime, setEndTime] = useState('');
-    
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
 
-
     useEffect(() => {
-        if (slotInfo?.start) {
-            // Format the date from the calendar slot into the string format the input expects
-            const toLocalISOString = (date) => {
-                const tzoffset = (new Date()).getTimezoneOffset() * 60000; //offset in milliseconds
-                const localISOTime = (new Date(date - tzoffset)).toISOString().slice(0, 16);
-                return localISOTime;
-            }
+        if (!isOpen) return;
+
+        const toLocalISOString = (date) => {
+            const tzoffset = (new Date()).getTimezoneOffset() * 60000;
+            return (new Date(new Date(date).getTime() - tzoffset)).toISOString().slice(0, 16);
+        };
+
+        if (editingMeeting) {
+            setTitle(editingMeeting.title || '');
+            setStartTime(editingMeeting.start ? toLocalISOString(editingMeeting.start) : '');
+            setEndTime(editingMeeting.end ? toLocalISOString(editingMeeting.end) : '');
+            setParticipants(editingMeeting.resource?.participants?.map(p => typeof p === 'object' ? p._id : p) || []);
+        } else if (slotInfo?.start) {
             setStartTime(toLocalISOString(slotInfo.start));
             setEndTime(toLocalISOString(slotInfo.end));
+        } else {
+            // Reset if opening in create mode without slots
+            setTitle(''); setParticipants([]); setStartTime(''); setEndTime('');
         }
-    }, [slotInfo]);
+    }, [slotInfo, editingMeeting, isOpen]);
 
     if (!isOpen) return null;
 
-    
     const handleUserSelect = (userId) => {
-        setParticipants(prev => 
-            prev.includes(userId) 
-                ? prev.filter(id => id !== userId) 
+        setParticipants(prev =>
+            prev.includes(userId)
+                ? prev.filter(id => id !== userId)
                 : [...prev, userId]
         );
     };
@@ -54,21 +63,33 @@ const ScheduleMeetingModal = ({ isOpen, onClose, contacts, onMeetingScheduled,sl
                 startTime: new Date(startTime),
                 endTime: new Date(endTime),
             };
-            const response = await axios.post('/meetings/schedule', payload);
-            
-            if (response.status === 201) {
-                alert(`Meeting scheduled! ID: ${response.data.meeting.meetingId}`);
-                onMeetingScheduled(); // Notify parent to update
-                handleClose();
+
+            let response;
+            if (editingMeeting) {
+                response = await axios.put(`/meetings/${editingMeeting._id}`, payload);
+                if (response.status === 200) {
+                    toast.success('Meeting updated', `"${title}" has been updated.`);
+                    onMeetingScheduled();
+                    handleClose();
+                }
+            } else {
+                response = await axios.post('/meetings/schedule', payload);
+                if (response.status === 201) {
+                    toast.success('Meeting scheduled', `"${title}" has been created. Invites sent to ${participants.length} participant${participants.length !== 1 ? 's' : ''}.`);
+                    onMeetingScheduled();
+                    handleClose();
+                }
             }
         } catch (err) {
             console.error("Failed to schedule meeting:", err);
-            setError(err.response?.data?.message || 'Failed to schedule meeting.');
+            const msg = err.response?.data?.message || 'Failed to schedule meeting.';
+            setError(msg);
+            toast.error('Scheduling failed', msg);
         } finally {
             setIsLoading(false);
         }
     };
-    
+
     const handleClose = () => {
         setTitle(''); setParticipants([]); setStartTime(''); setEndTime('');
         setError(''); setIsLoading(false);
@@ -76,53 +97,64 @@ const ScheduleMeetingModal = ({ isOpen, onClose, contacts, onMeetingScheduled,sl
     };
 
     return (
-        <div className="fixed inset-0 bg-black/60 z-50 flex justify-center items-center p-4 backdrop-blur-sm">
-            <div className="bg-white rounded-lg shadow-xl w-full max-w-lg">
-                <div className="p-4 border-b flex justify-between items-center">
-                    <h2 className="text-lg font-semibold">Schedule a Meeting</h2>
-                    <button onClick={handleClose} className="p-1 rounded-full hover:bg-slate-100"><X size={20} /></button>
+        <div className="fixed inset-0 bg-black/50 z-50 flex justify-center items-center p-4 backdrop-blur-sm">
+            <div className="bg-white rounded-lg shadow-xl w-full max-w-lg border border-gray-200">
+                <div className="px-5 py-4 border-b border-gray-100 flex justify-between items-center">
+                    <div className="flex items-center gap-2">
+                        <CalendarClock size={18} className="text-indigo-600" />
+                        <h2 className="text-base font-semibold text-gray-900">{editingMeeting ? 'Edit Meeting' : 'Schedule a Meeting'}</h2>
+                    </div>
+                    <button onClick={handleClose} className="p-1 rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors">
+                        <X size={18} />
+                    </button>
                 </div>
                 <form onSubmit={handleSubmit}>
-                    <div className="p-6 space-y-4">
+                    <div className="p-5 space-y-4">
                         <div>
-                            <label htmlFor="title" className="block text-sm font-medium text-slate-700">Meeting Title</label>
+                            <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">Meeting Title</label>
                             <input type="text" id="title" value={title} onChange={(e) => setTitle(e.target.value)}
-                                className="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm" required />
+                                className="block w-full px-3 py-2 text-sm border border-gray-200 rounded-md bg-gray-50 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 placeholder-gray-400"
+                                placeholder="e.g. Sprint Planning" required />
                         </div>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
-                                <label htmlFor="startTime" className="block text-sm font-medium text-slate-700">Start Time</label>
+                                <label htmlFor="startTime" className="block text-sm font-medium text-gray-700 mb-1">Start Time</label>
                                 <input type="datetime-local" id="startTime" value={startTime} onChange={(e) => setStartTime(e.target.value)}
-                                    className="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm" required />
+                                    className="block w-full px-3 py-2 text-sm border border-gray-200 rounded-md bg-gray-50 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500" required />
                             </div>
                             <div>
-                                <label htmlFor="endTime" className="block text-sm font-medium text-slate-700">End Time</label>
+                                <label htmlFor="endTime" className="block text-sm font-medium text-gray-700 mb-1">End Time</label>
                                 <input type="datetime-local" id="endTime" value={endTime} onChange={(e) => setEndTime(e.target.value)}
-                                    className="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm" required />
+                                    className="block w-full px-3 py-2 text-sm border border-gray-200 rounded-md bg-gray-50 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500" required />
                             </div>
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-slate-700">Invite Members</label>
-                            <div className="mt-2 border rounded-md max-h-48 overflow-y-auto">
-                                {contacts.map(contact => (
-                                    <div key={contact._id} className="flex items-center justify-between p-2.5 border-b last:border-b-0 hover:bg-slate-50">
-                                        <div className="flex items-center gap-3">
-                                            <UserAvatar user={contact} size={8} />
-                                            <span className="text-sm font-medium">{contact.name}</span>
+                            <label className="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-2">
+                                <Users size={14} /> Invite Members
+                                {participants.length > 0 && <span className="text-xs text-indigo-600 font-normal">({participants.length} selected)</span>}
+                            </label>
+                            <div className="border border-gray-200 rounded-md max-h-40 overflow-y-auto divide-y divide-gray-100">
+                                {contacts?.length > 0 ? contacts.map(contact => (
+                                    <label key={contact._id} className="flex items-center justify-between px-3 py-2 hover:bg-gray-50 cursor-pointer transition-colors">
+                                        <div className="flex items-center gap-2.5">
+                                            <UserAvatar user={contact} size={7} />
+                                            <span className="text-sm text-gray-700">{contact.name}</span>
                                         </div>
                                         <input type="checkbox" checked={participants.includes(contact._id)} onChange={() => handleUserSelect(contact._id)}
-                                            className="h-4 w-4 rounded text-indigo-600 border-gray-300 focus:ring-indigo-500" />
-                                    </div>
-                                ))}
+                                            className="h-3.5 w-3.5 rounded text-indigo-600 border-gray-300 focus:ring-indigo-500 cursor-pointer" />
+                                    </label>
+                                )) : (
+                                    <p className="px-3 py-4 text-sm text-gray-400 text-center">No contacts available</p>
+                                )}
                             </div>
                         </div>
-                        {error && <p className="text-sm text-red-600 text-center pt-2">{error}</p>}
+                        {error && <p className="text-sm text-red-600 bg-red-50 px-3 py-2 rounded-md">{error}</p>}
                     </div>
-                    <div className="p-4 bg-slate-50 border-t rounded-b-lg flex justify-end gap-3">
-                        <button type="button" onClick={handleClose} className="px-4 py-2 text-sm font-medium bg-white border border-slate-300 rounded-md hover:bg-slate-50">Cancel</button>
-                        <button type="submit" disabled={isLoading} className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700 disabled:opacity-50 flex items-center">
-                            {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}
-                            Schedule Meeting
+                    <div className="px-5 py-3 bg-gray-50 border-t border-gray-100 rounded-b-lg flex justify-end gap-2">
+                        <button type="button" onClick={handleClose} className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-md hover:bg-gray-50 transition-colors">Cancel</button>
+                        <button type="submit" disabled={isLoading} className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700 disabled:opacity-50 flex items-center transition-colors">
+                            {isLoading && <AppLoader size="sm" />}
+                            {editingMeeting ? 'Update Meeting' : 'Schedule'}
                         </button>
                     </div>
                 </form>

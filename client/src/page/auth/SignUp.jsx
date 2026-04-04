@@ -1,7 +1,8 @@
+import AppLoader from "../../components/common/AppLoader";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
-import { AudioLines, Loader } from "lucide-react";
+import { AudioLines } from 'lucide-react';
 import Button from "../../components/ui/Button"; // Your Button with cva and cn
 import { FcGoogle } from "react-icons/fc";
 function SignUp() {
@@ -25,17 +26,17 @@ function SignUp() {
         password,
       });
       if (response) {
-    // Backend successfully created the unverified user and sent an OTP
-    const userEmail = response.data.email;
-    console.log("Registration successful for:", userEmail, "OTP sent.");
-    
-    // Navigate to the OTP verification page
-    // We pass the user's email in the `state` so the OTP page knows who to verify
-    navigate('/verify-otp', { state: { email: userEmail } });
-  } else {
-    // Handle any unexpected success responses from the backend
-    setError(response.data?.message || "An unexpected error occurred.");
-  }
+        // Backend successfully created the unverified user and sent an OTP
+        const userEmail = response.data.email;
+        console.log("Registration successful for:", userEmail, "OTP sent.");
+
+        // Navigate to the OTP verification page
+        // We pass the user's email in the `state` so the OTP page knows who to verify
+        navigate('/verify-otp', { state: { email: userEmail } });
+      } else {
+        // Handle any unexpected success responses from the backend
+        setError(response.data?.message || "An unexpected error occurred.");
+      }
       // const token = response.data.token;
       // const user = response.data.user;
       // console.log("Signup successful, user:", user);
@@ -48,7 +49,7 @@ function SignUp() {
   };
 
   const handleGoogleLogin = () => {
-    window.location.href = `${import.meta.env.VITE_BACKEND_URL}/api/auth/google`;
+    window.location.href = `${import.meta.env.VITE_BACKEND_URL}/auth/google`;
   };
 
   return (
@@ -97,7 +98,7 @@ function SignUp() {
                           fill="currentColor"
                         />
                       </svg> */}
-                       <FcGoogle className="text-2xl"/>
+                      <FcGoogle className="text-2xl" />
                       Signup with Google
                     </Button>
                   </div>
@@ -165,7 +166,7 @@ function SignUp() {
                       type="submit"
                       className="w-full bg-black text-white hover:bg-black/90"
                     >
-                      {isPending && <Loader className="animate-spin" />}
+                      {isPending && <AppLoader size="sm" />}
                       Sign up
                     </Button>
                   </div>

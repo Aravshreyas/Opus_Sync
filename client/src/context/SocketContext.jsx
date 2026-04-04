@@ -11,13 +11,13 @@ export const SocketProvider = ({ children }) => {
     const [socket, setSocket] = useState(null);
     const [onlineUsers, setOnlineUsers] = useState([]);
     const { user } = useAuth();
-    
+
     useEffect(() => {
         if (user?._id) {
             const token = sessionStorage.getItem("accessToken");
             const connectionOptions = isAppleDevice() && token ? { auth: { token } } : { withCredentials: true };
             const newSocket = io(import.meta.env.VITE_BACKEND_URL_BASE || "http://localhost:8000", connectionOptions);
-            
+
             newSocket.on('getOnlineUsers', (users) => setOnlineUsers(users || []));
             setSocket(newSocket);
             return () => newSocket.disconnect();

@@ -1,6 +1,7 @@
 import { Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "../context/auth-context";
 import { useEffect, useState } from "react";
+import AppLoader from "../components/common/AppLoader";
 
 const ProtectedRoute = () => {
   const { user, loading } = useAuth();
@@ -14,7 +15,7 @@ const ProtectedRoute = () => {
 
   console.log("ProtectedRoute state:", { user, loading }, "IsChecked:", isChecked);
 
-  if (!isChecked) return <div>Loading...</div>;
+  if (!isChecked) return <AppLoader fullPage label="Authenticating..." />;
   if (!user) {
     console.log("ProtectedRoute: No user, redirecting to /", "User:", user);
     return <Navigate to="/" />;

@@ -1,11 +1,10 @@
+import AppLoader from "../common/AppLoader";
 import React, { useEffect, useState, useCallback, useRef } from "react";
 import { Link, useParams, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../context/auth-context";
 import axios from "axios";
-import {
-  AudioLines, Plus, ChevronDown, LayoutDashboard, CircleCheckBig, Users, Settings,
-  Ellipsis, LogOut as LogoutIcon, Loader2, Folder, UserCircle, AlertTriangle, X as IconX,MessageSquare,Calendar,Video,
-} from "lucide-react";
+import { AudioLines, Plus, ChevronDown, LayoutDashboard, CircleCheckBig, Users, Settings,
+  Ellipsis, LogOut as LogoutIcon, Folder, UserCircle, AlertTriangle, X as IconX,MessageSquare,Calendar,Video } from 'lucide-react';
 import CreateWorkspaceDialog from "../workspace/CreateWorkspaceDialog";
 import CreateProjectDialog from "../workspace/project/CreateProjectDialog";
 import WorkspaceAvatar from "../common/WorkspaceAvatar";
@@ -245,7 +244,7 @@ const Sidebar = ({ isDesktopCollapsed, isMobileOpen, closeMobileSidebar }) => {
     return (
       <div className={`fixed inset-y-0 left-0 z-40 hidden md:flex border-r bg-white transition-all duration-300 ${isDesktopCollapsed ? "w-20" : "w-64"}`}>
         <div className="flex items-center justify-center w-full h-full">
-          <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+          <AppLoader size="sm" />
         </div>
       </div>
     );
@@ -402,7 +401,7 @@ const Sidebar = ({ isDesktopCollapsed, isMobileOpen, closeMobileSidebar }) => {
                 <ul className={`flex flex-col gap-1 w-full ${!displayCollapsed ? "max-h-[calc(100vh-510px)] min-h-[60px] overflow-y-auto" : "overflow-y-auto"}`}>
                   {currentWsDataLoading ? (
                     <li className={`p-2 text-sm text-gray-500 ${displayCollapsed ? "text-center" : ""}`}>
-                      {displayCollapsed ? <Loader2 className="h-4 w-4 animate-spin mx-auto" /> : "Loading projects..."}
+                      {displayCollapsed ? <AppLoader size="sm" /> : "Loading projects..."}
                     </li>
                   ) : error && projects.length === 0 ? (
                     <li className={`p-2 text-sm text-red-500 ${displayCollapsed ? "text-center" : ""}`}>

@@ -2,11 +2,14 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/auth-context";
+import AppLoader from "../../components/common/AppLoader";
 import { X, Plus } from "lucide-react";
+import { useToast } from '../../context/ToastContext';
 
 const WorkspaceSettings = () => {
   const { user, setUser, loading: authLoading } = useAuth();
   const { workspaceId } = useParams();
+  const { toast } = useToast();
   const navigate = useNavigate();
   const [workspace, setWorkspace] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -72,9 +75,11 @@ const WorkspaceSettings = () => {
       if (user.currentWorkspace?._id === workspaceId) {
         setUser({ ...user, currentWorkspace: response.data.workspace });
       }
+      toast.success('Workspace updated', 'The workspace settings have been saved successfully.');
     } catch (err) {
       console.error("Error updating workspace:", err.response?.status, err.response?.data);
       setErrorMessage(`Update failed: ${err.response?.data?.message || err.message}`);
+      toast.error('Update failed', err.response?.data?.message || 'Could not save the workspace settings.');
     } finally {
       setIsSubmitting(false);
     }
@@ -82,7 +87,7 @@ const WorkspaceSettings = () => {
 
   const handleDeleteWorkspace = async () => {
     // Rely on user.workspaces from AuthContext
-    const workspaces = user.workspaces ;
+    const workspaces = user.workspaces;
     if (!Array.isArray(workspaces)) {
       setErrorMessage("Failed to load workspaces. Please try again later.");
       setIsDialogOpen(false);
@@ -159,7 +164,7 @@ const WorkspaceSettings = () => {
   };
 
   if (authLoading || !user || loading) {
-    return <div className="px-3 lg:px-20 py-3 text-center">Loading...</div>;
+    return <AppLoader fullPage label="Loading settings..." />;
   }
 
   if (!workspace) {

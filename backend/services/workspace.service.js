@@ -5,7 +5,7 @@ const MemberModel = require("../models/member.model");
 const RoleModel = require("../models/roles-permission.model");
 const UserModel = require("../models/user.model");
 const WorkspaceModel = require("../models/workspace.model");
-const { BadRequestException, NotFoundException } = require("../utils/appError");
+const { BadRequestException, NotFoundException, UnauthorizedException } = require("../utils/appError");
 const TaskModel = require("../models/task.model");
 const { TaskStatusEnum } = require("../enums/task.enum");
 const ProjectModel = require("../models/project.model");
@@ -16,12 +16,12 @@ const createWorkspaceService = async (userId, body) => {
 
     const user = await UserModel.findById(userId);
     if (!user) {
-        throw NotFoundException("User not found");
+        throw new NotFoundException("User not found");
     }
 
     const ownerRole = await RoleModel.findOne({ name: Roles.OWNER });
     if (!ownerRole) {
-        throw NotFoundException("Owner role not found");
+        throw new NotFoundException("Owner role not found");
     }
 
     const workspace = new WorkspaceModel({
@@ -62,7 +62,7 @@ const getAllWorkspacesUserIsMemberService = async (userId) => {
 const getWorkspaceByIdService = async (workspaceId) => {
     const workspace = await WorkspaceModel.findById(workspaceId);
     if (!workspace) {
-        throw NotFoundException("Workspace not found");
+        throw new NotFoundException("Workspace not found");
     }
 
     const members = await MemberModel.find({ workspaceId }).populate("role");
@@ -116,12 +116,12 @@ const getWorkspaceAnalyticsService = async (workspaceId) => {
 const changeMemberRoleService = async (workspaceId, memberId, roleId) => {
     const workspace = await WorkspaceModel.findById(workspaceId);
     if (!workspace) {
-        throw NotFoundException("Workspace not found");
+        throw new NotFoundException("Workspace not found");
     }
 
     const role = await RoleModel.findById(roleId);
     if (!role) {
-        throw NotFoundException("Role not found");
+        throw new NotFoundException("Role not found");
     }
 
     const member = await MemberModel.findOne({ userId: memberId, workspaceId });
@@ -139,7 +139,7 @@ const changeMemberRoleService = async (workspaceId, memberId, roleId) => {
 const updateWorkspaceByIdService = async (workspaceId, name, description) => {
     const workspace = await WorkspaceModel.findById(workspaceId);
     if (!workspace) {
-        throw NotFoundException("Workspace not found");
+        throw new NotFoundException("Workspace not found");
     }
 
     workspace.name = name || workspace.name;
@@ -156,16 +156,16 @@ const deleteWorkspaceService = async (workspaceId, userId) => {
     try {
         const workspace = await WorkspaceModel.findById(workspaceId).session(session);
         if (!workspace) {
-            throw NotFoundException("Workspace not found");
+            throw new NotFoundException("Workspace not found");
         }
-        
+
         if (workspace.owner.toString() !== userId.toString()) {
-            throw BadRequestException("You are not authorized to delete this workspace");
+            throw new UnauthorizedException("You are not authorized to delete this workspace");
         }
-       
+
         const user = await UserModel.findById(userId).session(session);
         if (!user) {
-            throw NotFoundException("User not found");
+            throw new NotFoundException("User not found");
         }
 
         await ProjectModel.deleteMany({ workspace: workspace._id }).session(session);

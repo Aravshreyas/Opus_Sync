@@ -2,25 +2,27 @@ import React, { useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 import { AudioLines } from "lucide-react";
-import { useAuth } from "../../context/auth-context"; // Import useAuth
+import { useAuth } from "../../context/auth-context";
+import { useToast } from '../../context/ToastContext';
 
 const InviteJoinPage = () => {
   const navigate = useNavigate();
   const { inviteCode } = useParams();
-  const { user, setUser } = useAuth(); // Get user and setUser from auth context
-  const isLoggedIn = !!user; // Check if user is logged in
+  const { user, setUser } = useAuth();
+  const { toast } = useToast();
+  const isLoggedIn = !!user;
 
-//   useEffect(() => {
-//     if (!inviteCode) {
-//       console.error("No invite code provided");
-//       alert("Invalid invite link. Please check the URL.");
-//       navigate("/");
-//     }
-//   }, [inviteCode, navigate]);
+  //   useEffect(() => {
+  //     if (!inviteCode) {
+  //       console.error("No invite code provided");
+  //       alert("Invalid invite link. Please check the URL.");
+  //       navigate("/");
+  //     }
+  //   }, [inviteCode, navigate]);
 
   const handleJoin = async () => {
     if (!isLoggedIn) {
-      alert("Please log in or sign up to join the workspace.");
+      toast.warning('Login required', 'Please log in or sign up to join the workspace.');
       navigate(`/?returnUrl=/invite/workspace/${inviteCode}/join`);
       return;
     }
@@ -35,12 +37,12 @@ const InviteJoinPage = () => {
       console.log(response.data)
       // Handle API response
       if (response.data) {
-        const workspaceId = response.data.workspaceId ; // Adjust based on API
+        const workspaceId = response.data.workspaceId; // Adjust based on API
         setUser({ ...user, currentWorkspace: workspaceId }); // Update user context if needed
         navigate(`/workspace/${workspaceId}`);
       } else if (response.data.message === "User already in workspace") {
         // Handle case where user is already a member
-        alert("You are already a member of this workspace.");
+        toast.info('Already a member', 'You are already a member of this workspace.');
         navigate(`/workspace/${inviteCode}`); // Redirect to existing workspace
       } else {
         throw new Error(response.data.message || "Unknown error");
@@ -49,7 +51,7 @@ const InviteJoinPage = () => {
       console.error("Error joining workspace:", error);
       const errorMessage =
         error.response?.data?.message || error.message || "Failed to join workspace.";
-      alert(errorMessage);
+      toast.error('Join failed', errorMessage);
     }
   };
 

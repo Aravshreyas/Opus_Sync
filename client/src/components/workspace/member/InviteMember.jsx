@@ -1,6 +1,7 @@
+import AppLoader from "../../common/AppLoader";
 import { useState } from "react";
 import { toast } from "../../hooks/use-toast";
-import { CheckIcon, CopyIcon, Loader } from "lucide-react";
+import { CheckIcon, CopyIcon } from 'lucide-react';
 import PermissionsGuard from "../resuable/permission-guard";
 import { Permissions } from "../../constant";
 

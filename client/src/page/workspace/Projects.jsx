@@ -6,9 +6,10 @@ import TaskTable from "../../components/workspace/task/TaskTable";
 import CreateTaskDialog from "../../components/workspace/task/CreateTaskDialog";
 import CreateProjectDialog from "../../components/workspace/project/CreateProjectDialog";
 import {
-  Plus, X, Loader2, AlertTriangle, Info, CalendarDays, FileText,
-  UserCircle, Clock, Briefcase, Edit,FolderKanban,ChartLine,
+  Plus, X, AlertTriangle, Info, CalendarDays, FileText,
+  UserCircle, Clock, Briefcase, Edit, FolderKanban, ChartLine,
 } from "lucide-react";
+import AppLoader from "../../components/common/AppLoader";
 
 const Projects = () => {
   const { workspaceId, projectId } = useParams();
@@ -58,7 +59,7 @@ const Projects = () => {
     } finally {
       setLoading(false);
     }
-  }, [projectId, workspaceId,isEditProjectOpen,isCreateTaskDialogOpen]);
+  }, [projectId, workspaceId, isEditProjectOpen, isCreateTaskDialogOpen]);
 
   // Fetch tasks to calculate progress
   const fetchTasksForProgress = useCallback(async () => {
@@ -157,12 +158,7 @@ const Projects = () => {
   };
 
   if (loading) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-10">
-        <Loader2 className="w-12 h-12 animate-spin text-indigo-600" />
-        <p className="text-xl text-gray-700 mt-4">Loading Project Hub...</p>
-      </div>
-    );
+    return <AppLoader fullPage label="Loading Project Hub..." />;
   }
 
   if (error || !projectData) {

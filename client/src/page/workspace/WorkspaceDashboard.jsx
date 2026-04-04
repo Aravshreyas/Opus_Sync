@@ -8,28 +8,29 @@ import { useAuth } from "../../context/auth-context";
 import { useParams, useNavigate } from "react-router-dom"; // Added useNavigate
 import { Permissions } from "../../constant";
 // Added Zap and ListChecks for MyFocus, Clock for time display
-import { X, Plus, CheckCircle, Calendar, Users, Zap, ListChecks, Clock } from "lucide-react";
+import { X, Plus, CheckCircle, Calendar, Users, Zap, ListChecks, Clock, PlusCircle } from "lucide-react";
 import Button from "../../components/ui/Button";
+import AppLoader from "../../components/common/AppLoader";
 import { Doughnut } from "react-chartjs-2";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
-import { format, isAfter, isBefore, addDays } from 'date-fns'; 
+import { format, isAfter, isBefore, addDays } from 'date-fns';
 
 // Register Chart.js components
 ChartJS.register(ArcElement, Tooltip, Legend);
 
 const MyTaskCard = ({ task }) => (
-    // Simple card for My Focus task
-    <a href={`/workspace/${task.workspace}/project/${task.project._id}/tasks/${task.id}`} className="block bg-sky-50 border border-sky-200 p-3 rounded-lg shadow-sm hover:shadow-md hover:border-sky-300 transition-all duration-200 ease-in-out">
-      <div className="flex justify-between items-start">
-        <h4 className="font-semibold text-sm text-sky-700">{task.title}</h4>
-        <ListChecks className="w-5 h-5 text-sky-500 flex-shrink-0" />
-      </div>
-      {task.dueDate && (
-        <p className="text-xs text-gray-500 mt-1">
-          Due: {format(new Date(task.dueDate), "MMM dd, yyyy")}
-        </p>
-      )}
-    </a>
+  // Simple card for My Focus task
+  <a href={`/workspace/${task.workspace}/project/${task.project._id}/tasks/${task.id}`} className="block bg-sky-50 border border-sky-200 p-3 rounded-lg shadow-sm hover:shadow-md hover:border-sky-300 transition-all duration-200 ease-in-out">
+    <div className="flex justify-between items-start">
+      <h4 className="font-semibold text-sm text-sky-700">{task.title}</h4>
+      <ListChecks className="w-5 h-5 text-sky-500 flex-shrink-0" />
+    </div>
+    {task.dueDate && (
+      <p className="text-xs text-gray-500 mt-1">
+        Due: {format(new Date(task.dueDate), "MMM dd, yyyy")}
+      </p>
+    )}
+  </a>
 );
 
 const WorkspaceDashboard = () => {
@@ -41,9 +42,10 @@ const WorkspaceDashboard = () => {
   const [projectName, setProjectName] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [projectCreated, setProjectCreated] = useState(false);
-  const [permissions, setPermissions] = useState([]);
-  const [loadingPermissions, setLoadingPermissions] = useState(true);
-  const [loadingData, setLoadingData] = useState(true); // For preloads and tasks
+  // Permissions are enforced server-side; default to true on client
+  const [permissions, setPermissions] = useState([Permissions.CREATE_PROJECT]);
+  const [loadingPermissions, setLoadingPermissions] = useState(false);
+  const [loadingData, setLoadingData] = useState(true);
   const [taskCompletion, setTaskCompletion] = useState({ completed: 0, total: 0, percentage: 0 });
   const [motivationalMessage, setMotivationalMessage] = useState("");
   const [myTasks, setMyTasks] = useState([]); // User's pending tasks for "My Focus"
@@ -56,33 +58,7 @@ const WorkspaceDashboard = () => {
 
   const currentWorkspaceId = user?.currentWorkspace?._id || workspaceId;
 
-  // Fetch permissions
-  useEffect(() => {
-    const fetchPermissions = async () => {
-      if (!currentWorkspaceId || !user) {
-        setLoadingPermissions(false);
-        return;
-      }
-      setLoadingPermissions(true);
-      try {
-        const response = await axios.get(
-          `${import.meta.env.VITE_BACKEND_URL}/user/permissions`,
-          {
-            withCredentials: true,
-            params: { workspaceId: currentWorkspaceId },
-          }
-        );
-        const perms = response.data.permissions || [];
-        setPermissions(perms.map((p) => p.permission || p));
-      } catch (err) {
-        console.error("Error fetching permissions:", err);
-        setPermissions([]);
-      } finally {
-        setLoadingPermissions(false);
-      }
-    };
-    fetchPermissions();
-  }, [currentWorkspaceId, user]);
+
 
   // Fetch team members
   useEffect(() => {
@@ -97,7 +73,7 @@ const WorkspaceDashboard = () => {
           `${import.meta.env.VITE_BACKEND_URL}/workspace/members/${currentWorkspaceId}`,
           // { withCredentials: true }
         );
-       
+
         const members = response.data.members || [];
         setTeamMembersCount(members.length);
       } catch (err) {
@@ -123,10 +99,10 @@ const WorkspaceDashboard = () => {
           `${import.meta.env.VITE_BACKEND_URL}/task/workspace/${currentWorkspaceId}/all`,
           // { withCredentials: true }
         );
-        
+
         console.log(response.data)
         const allTasks = response.data.tasks || [];
-        
+
         const userTasks = allTasks.filter(
           (task) => (task.assignedTo?._id === user._id) || (task.assignedTo === null && task.createdBy === user._id)
         );
@@ -136,7 +112,7 @@ const WorkspaceDashboard = () => {
         setTaskCompletion({ completed, total, percentage });
 
         // Calculate upcoming deadlines (within 7 days, not completed)
-        const today = new Date("2025-06-01T14:12:00+05:30"); // Current date: June 01, 2025, 02:12 PM IST
+        const today = new Date();
         const sevenDaysFromNow = addDays(today, 7); // June 08, 2025
         const upcoming = userTasks.filter((task) => {
           if (task.status?.toUpperCase() === "DONE") return false; // Exclude completed tasks
@@ -219,7 +195,7 @@ const WorkspaceDashboard = () => {
     setIsSubmitting(true);
     try {
       await axios.post(
-        `${import.meta.env.VITE_BACKEND_URL}/workspace/${currentWorkspaceId}/projects`,
+        `${import.meta.env.VITE_BACKEND_URL}/project/workspace/${currentWorkspaceId}/create`,
         { name: projectName },
         // { withCredentials: true }
       );
@@ -259,7 +235,7 @@ const WorkspaceDashboard = () => {
     },
   };
 
-  if (isLoading) return <div className="flex justify-center items-center min-h-screen">Loading dashboard...</div>;
+  if (isLoading) return <AppLoader fullPage label="Loading workspace..." />;
   if (!user || !currentWorkspaceId) {
     console.log("WorkspaceDashboard: No user or currentWorkspace", user, currentWorkspaceId);
     return <div className="flex justify-center items-center min-h-screen">No workspace data available. Please select a workspace or log in.</div>;
@@ -278,8 +254,8 @@ const WorkspaceDashboard = () => {
           </p>
         </div>
         <div className="mt-2 sm:mt-0 flex items-center text-sm text-gray-600 bg-white px-3 py-2 rounded-lg shadow-sm">
-            <Clock size={16} className="mr-2 text-indigo-500"/>
-            {format(currentTime, "eeee, MMM dd, yyyy - hh:mm:ss a")}
+          <Clock size={16} className="mr-2 text-indigo-500" />
+          {format(currentTime, "eeee, MMM dd, yyyy - hh:mm:ss a")}
         </div>
         {canCreateProject && (
           <Button
@@ -313,9 +289,9 @@ const WorkspaceDashboard = () => {
       {/* My Focus Section */}
       <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
         <div className="flex items-center justify-between mb-4">
-            <h3 className="text-xl font-semibold text-gray-700 flex items-center">
-                <Zap className="w-6 h-6 text-yellow-500 mr-2" /> My Focus
-            </h3>
+          <h3 className="text-xl font-semibold text-gray-700 flex items-center">
+            <Zap className="w-6 h-6 text-yellow-500 mr-2" /> My Focus
+          </h3>
         </div>
         {loadingData ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -328,8 +304,8 @@ const WorkspaceDashboard = () => {
           </div>
         ) : myTasks.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            
-            {myTasks.map((task) => (              
+
+            {myTasks.map((task) => (
               <MyTaskCard key={task.id} task={task} />
             ))}
           </div>
@@ -377,7 +353,7 @@ const WorkspaceDashboard = () => {
       <div className="flex flex-wrap gap-3 mb-6">
         <Button
           className="bg-blue-500 text-white hover:bg-blue-600 px-4 py-2 rounded-lg flex items-center shadow-md hover:shadow-lg transition-all transform hover:scale-105"
-          onClick={() => navigate(`/workspace/${currentWorkspaceId}/tasks`)} 
+          onClick={() => navigate(`/workspace/${currentWorkspaceId}/tasks`)}
         >
           <CheckCircle className="mr-2 h-5 w-5" /> View All Tasks
         </Button>
@@ -388,31 +364,28 @@ const WorkspaceDashboard = () => {
         <h3 className="text-xl font-semibold text-gray-700 mb-4">Recently Updated</h3>
         <div className="flex border-b border-gray-200">
           <button
-            className={`py-2 px-4 text-sm font-medium focus:outline-none ${
-              activeTab === "projects"
-                ? "border-b-2 border-indigo-600 text-indigo-700"
-                : "text-gray-500 hover:text-gray-700"
-            } transition-colors`}
+            className={`py-2 px-4 text-sm font-medium focus:outline-none ${activeTab === "projects"
+              ? "border-b-2 border-indigo-600 text-indigo-700"
+              : "text-gray-500 hover:text-gray-700"
+              } transition-colors`}
             onClick={() => setActiveTab("projects")}
           >
             Recent Projects
           </button>
           <button
-            className={`py-2 px-4 text-sm font-medium focus:outline-none ${
-              activeTab === "tasks"
-                ? "border-b-2 border-indigo-600 text-indigo-700"
-                : "text-gray-500 hover:text-gray-700"
-            } transition-colors`}
+            className={`py-2 px-4 text-sm font-medium focus:outline-none ${activeTab === "tasks"
+              ? "border-b-2 border-indigo-600 text-indigo-700"
+              : "text-gray-500 hover:text-gray-700"
+              } transition-colors`}
             onClick={() => setActiveTab("tasks")}
           >
             Recent Tasks
           </button>
           <button
-            className={`py-2 px-4 text-sm font-medium focus:outline-none ${
-              activeTab === "members"
-                ? "border-b-2 border-indigo-600 text-indigo-700"
-                : "text-gray-500 hover:text-gray-700"
-            } transition-colors`}
+            className={`py-2 px-4 text-sm font-medium focus:outline-none ${activeTab === "members"
+              ? "border-b-2 border-indigo-600 text-indigo-700"
+              : "text-gray-500 hover:text-gray-700"
+              } transition-colors`}
             onClick={() => setActiveTab("members")}
           >
             Recent Members
@@ -460,13 +433,7 @@ const WorkspaceDashboard = () => {
                   className="w-full bg-indigo-600 text-white hover:bg-indigo-700 py-2.5 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
                 >
                   {isSubmitting ? (
-                    <>
-                      <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                      </svg>
-                      Creating...
-                    </>
+                    <AppLoader size="sm" />
                   ) : "Create Project"}
                 </Button>
               </div>

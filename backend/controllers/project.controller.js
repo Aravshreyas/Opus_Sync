@@ -18,15 +18,15 @@ const createProjectController = asyncHandler(async (req, res) => {
     const workspaceId = req.params.workspaceId;
 
     if (!name) {
-        throw BadRequestException("Name is required");
+        throw new BadRequestException("Name is required");
     }
     if (!workspaceId) {
-        throw BadRequestException("Workspace ID is required");
+        throw new BadRequestException("Workspace ID is required");
     }
 
     const userId = req.user ? req.user._id : null;
     if (!userId) {
-        throw UnauthorizedException("User not authenticated");
+        throw new UnauthorizedException("User not authenticated");
     }
 
     const { role } = await getMemberRoleInWorkspace(userId, workspaceId);
@@ -45,12 +45,12 @@ const getAllProjectsInWorkspaceController = asyncHandler(async (req, res) => {
     const workspaceId = req.params.workspaceId;
 
     if (!workspaceId) {
-        throw BadRequestException("Workspace ID is required");
+        throw new BadRequestException("Workspace ID is required");
     }
 
     const userId = req.user ? req.user._id : null;
     if (!userId) {
-        throw UnauthorizedException("User not authenticated");
+        throw new UnauthorizedException("User not authenticated");
     }
 
     const { role } = await getMemberRoleInWorkspace(userId, workspaceId);
@@ -81,15 +81,15 @@ const getProjectByIdAndWorkspaceIdController = asyncHandler(async (req, res) => 
     const workspaceId = req.params.workspaceId;
 
     if (!projectId) {
-        throw BadRequestException("Project ID is required");
+        throw new BadRequestException("Project ID is required");
     }
     if (!workspaceId) {
-        throw BadRequestException("Workspace ID is required");
+        throw new BadRequestException("Workspace ID is required");
     }
 
     const userId = req.user ? req.user._id : null;
     if (!userId) {
-        throw UnauthorizedException("User not authenticated");
+        throw new UnauthorizedException("User not authenticated");
     }
 
     const { role } = await getMemberRoleInWorkspace(userId, workspaceId);
@@ -108,15 +108,15 @@ const getProjectAnalyticsController = asyncHandler(async (req, res) => {
     const workspaceId = req.params.workspaceId;
 
     if (!projectId) {
-        throw BadRequestException("Project ID is required");
+        throw new BadRequestException("Project ID is required");
     }
     if (!workspaceId) {
-        throw BadRequestException("Workspace ID is required");
+        throw new BadRequestException("Workspace ID is required");
     }
 
     const userId = req.user ? req.user._id : null;
     if (!userId) {
-        throw UnauthorizedException("User not authenticated");
+        throw new UnauthorizedException("User not authenticated");
     }
 
     const { role } = await getMemberRoleInWorkspace(userId, workspaceId);
@@ -136,15 +136,15 @@ const updateProjectController = asyncHandler(async (req, res) => {
     const workspaceId = req.params.workspaceId;
 
     if (!projectId) {
-        throw BadRequestException("Project ID is required");
+        throw new BadRequestException("Project ID is required");
     }
     if (!workspaceId) {
-        throw BadRequestException("Workspace ID is required");
+        throw new BadRequestException("Workspace ID is required");
     }
 
     const userId = req.user ? req.user._id : null;
     if (!userId) {
-        throw UnauthorizedException("User not authenticated");
+        throw new UnauthorizedException("User not authenticated");
     }
 
     const { role } = await getMemberRoleInWorkspace(userId, workspaceId);
@@ -166,15 +166,15 @@ const deleteProjectController = asyncHandler(async (req, res) => {
     const workspaceId = req.params.workspaceId;
 
     if (!projectId) {
-        throw BadRequestException("Project ID is required");
+        throw new BadRequestException("Project ID is required");
     }
     if (!workspaceId) {
-        throw BadRequestException("Workspace ID is required");
+        throw new BadRequestException("Workspace ID is required");
     }
 
     const userId = req.user ? req.user._id : null;
     if (!userId) {
-        throw UnauthorizedException("User not authenticated");
+        throw new UnauthorizedException("User not authenticated");
     }
 
     const { role } = await getMemberRoleInWorkspace(userId, workspaceId);

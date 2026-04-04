@@ -1,6 +1,9 @@
+import AppLoader from "../../common/AppLoader";
 import React, { useState, useEffect } from "react";
-import { X, Briefcase, User, CalendarDays, CheckCircle, AlertTriangle, Info, Loader2 } from "lucide-react";
+import { X, Briefcase, User, CalendarDays, CheckCircle, AlertTriangle, Info } from 'lucide-react';
 import axios from "axios";
+import { useAuth } from "../../../context/auth-context";
+import { useToast } from '../../../context/ToastContext';
 
 const CreateTaskDialog = ({ onClose, workspaceId, task = null, onTaskProcessed, defaultProjectId = null }) => {
   const [title, setTitle] = useState("");
@@ -20,6 +23,8 @@ const CreateTaskDialog = ({ onClose, workspaceId, task = null, onTaskProcessed, 
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
 
+  const { user } = useAuth();
+  const { toast } = useToast();
   const isEditMode = Boolean(task);
 
   useEffect(() => {
@@ -93,7 +98,7 @@ const CreateTaskDialog = ({ onClose, workspaceId, task = null, onTaskProcessed, 
     setErrorMessage("");
     setSuccessMessage("");
 
-    if (!title ||!description|| !project || !assignee || !dueDate || !status || !priority) {
+    if (!title || !description || !project || !assignee || !dueDate || !status || !priority) {
       setErrorMessage("All fields marked with * are required.");
       return;
     }
@@ -131,7 +136,7 @@ const CreateTaskDialog = ({ onClose, workspaceId, task = null, onTaskProcessed, 
           // { withCredentials: true }
         );
       }
-      
+
       if (onTaskProcessed) {
         onTaskProcessed(response.data.task || response.data);
       }
@@ -144,7 +149,7 @@ const CreateTaskDialog = ({ onClose, workspaceId, task = null, onTaskProcessed, 
       setIsSubmitting(false);
     }
   };
-  
+
   const FieldLabel = ({ htmlFor, children, required = false }) => (
     <label htmlFor={htmlFor} className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5">
       {children}
@@ -156,7 +161,7 @@ const CreateTaskDialog = ({ onClose, workspaceId, task = null, onTaskProcessed, 
     <div
       className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
     >
-      <div 
+      <div
         className="relative bg-white rounded-xl shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
@@ -225,7 +230,7 @@ const CreateTaskDialog = ({ onClose, workspaceId, task = null, onTaskProcessed, 
               </select>
             </div>
           </div>
-          
+
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-x-4 gap-y-5">
             <div>
               <FieldLabel htmlFor="dueDate" required>Due Date</FieldLabel>
@@ -267,7 +272,7 @@ const CreateTaskDialog = ({ onClose, workspaceId, task = null, onTaskProcessed, 
             className="px-5 h-10 bg-black text-white rounded-lg hover:bg-gray-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-500 focus-visible:ring-offset-2 text-sm font-medium transition-colors disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center min-w-[120px]"
             disabled={isSubmitting || loadingProjects || loadingMembers}>
             {isSubmitting ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
+              <AppLoader size="sm" />
             ) : (isEditMode ? "Save Changes" : "Create Task")}
           </button>
         </div>

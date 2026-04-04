@@ -1,9 +1,10 @@
-// src/App.jsx
 import React from "react";
 import AppRoutes from "./routes/AppRoutes";
 import { AuthProvider } from "./context/auth-context";
 import { SocketProvider } from './context/SocketContext';
 import { OnlineUsersProvider } from './context/OnlineUsersContext';
+import { ToastProvider } from './context/ToastContext';
+
 
 class ErrorBoundary extends React.Component {
   state = { hasError: false, error: null };
@@ -30,11 +31,13 @@ function App() {
   return (
     <AuthProvider>
       <SocketProvider>
-         <OnlineUsersProvider>
-      <ErrorBoundary>
-        <AppRoutes />
-      </ErrorBoundary>
-      </OnlineUsersProvider>
+        <OnlineUsersProvider>
+          <ToastProvider>
+            <ErrorBoundary>
+              <AppRoutes />
+            </ErrorBoundary>
+          </ToastProvider>
+        </OnlineUsersProvider>
       </SocketProvider>
     </AuthProvider>
   );

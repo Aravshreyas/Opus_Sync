@@ -1,60 +1,73 @@
+import AppLoader from "../common/AppLoader";
 import React from 'react';
-import { Loader2 } from 'lucide-react';
+
 import UserAvatar from '../common/UserAvatar';
-import { useOnlineUsers } from '../../context/OnlineUsersContext'; // Import the new hook
+import { useOnlineUsers } from '../../context/OnlineUsersContext';
 
 const ConversationList = ({ items, loading, onConversationSelect, activeConversationId, unreadMessages }) => {
     const { onlineUsers } = useOnlineUsers();
 
-    return (
-        <div className="w-1/3 md:w-1/4 border-r border-slate-200 bg-slate-50 flex flex-col">
-            <div className="p-4 border-b border-slate-200">
-                <h1 className="text-lg font-semibold text-slate-800">Messages</h1>
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center p-8">
+                <AppLoader size="sm" />
             </div>
-            <div className="flex-1 overflow-y-auto">
-                {loading ? (
-                    <div className="p-4 text-center text-slate-500"><Loader2 className="animate-spin inline-block"/></div>
-                ) : (
-                    <ul>
-                        {items.map(item => {
-                            if (!item.otherParticipant) return null; // Safety check
-                            const isOnline = onlineUsers.includes(item.otherParticipant._id);
-                            const unreadCount = unreadMessages[item._id] || 0;
+        );
+    }
 
-                            return (
-                                <li key={item._id}>
-                                    <button 
-                                        onClick={() => onConversationSelect(item)} 
-                                        className={`flex items-center gap-3 w-full p-3 text-left transition-colors duration-150 ease-in-out hover:bg-slate-200/50 ${
-                                            activeConversationId === item.otherParticipant._id ? 'bg-indigo-100' : ''
-                                        }`}
-                                    >
-                                        <div className="relative flex-shrink-0">
-                                            <UserAvatar user={item.otherParticipant} size={10} />
-                                            {isOnline && (
-                                                <span className="absolute bottom-0 right-0 block h-2.5 w-2.5 rounded-full bg-green-500 ring-2 ring-white" />
-                                            )}
-                                        </div>
-                                        <div className="flex-1 overflow-hidden">
-                                            <div className="flex items-center justify-between">
-                                                <p className={`font-semibold text-sm truncate ${unreadCount > 0 ? 'text-slate-900' : 'text-slate-800'}`}>
-                                                    {item.otherParticipant.name}
-                                                </p>
-                                                {unreadCount > 0 && (
-                                                    <span className="flex-shrink-0 ml-2 h-2.5 w-2.5 rounded-full bg-blue-500" />
-                                                )}
-                                            </div>
-                                            <p className={`text-xs truncate ${unreadCount > 0 ? 'font-bold text-slate-700' : 'text-slate-500'}`}>
-                                                {item.lastMessage?.content || "Click to start chatting"}
-                                            </p>
-                                        </div>
-                                    </button>
-                                </li>
-                            );
-                        })}
-                    </ul>
-                )}
+    if (items.length === 0) {
+        return (
+            <div className="px-4 py-8 text-center">
+                <p className="text-sm text-gray-400">No contacts found</p>
             </div>
+        );
+    }
+
+    return (
+        <div className="py-1">
+            {items.map(item => {
+                if (!item.otherParticipant) return null;
+                const isOnline = onlineUsers.includes(item.otherParticipant._id);
+                const unreadCount = unreadMessages[item._id] || 0;
+                const isActive = activeConversationId === item.otherParticipant._id;
+
+                return (
+                    <button
+                        key={item._id}
+                        onClick={() => onConversationSelect(item)}
+                        className={`flex items-center gap-3 w-full px-4 py-2.5 text-left transition-colors duration-100 ${isActive
+                                ? 'bg-gray-100'
+                                : 'hover:bg-gray-50'
+                            }`}
+                    >
+                        <div className="relative flex-shrink-0">
+                            <UserAvatar user={item.otherParticipant} size={9} />
+                            {isOnline && (
+                                <span className="absolute bottom-0 right-0 block h-2 w-2 rounded-full bg-green-500 ring-[1.5px] ring-white" />
+                            )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between gap-2">
+                                <p className={`text-sm truncate ${isActive ? 'font-semibold text-gray-900' :
+                                        unreadCount > 0 ? 'font-semibold text-gray-900' :
+                                            'font-medium text-gray-700'
+                                    }`}>
+                                    {item.otherParticipant.name}
+                                </p>
+                                {unreadCount > 0 && (
+                                    <span className="flex-shrink-0 bg-indigo-600 text-white text-[10px] font-bold px-1.5 py-px rounded-full min-w-[16px] text-center leading-4">
+                                        {unreadCount > 9 ? '9+' : unreadCount}
+                                    </span>
+                                )}
+                            </div>
+                            <p className={`text-xs mt-0.5 truncate ${unreadCount > 0 ? 'text-gray-600 font-medium' : 'text-gray-400'
+                                }`}>
+                                {item.lastMessage?.content || "Start a conversation"}
+                            </p>
+                        </div>
+                    </button>
+                );
+            })}
         </div>
     );
 };

@@ -1,7 +1,8 @@
+import AppLoader from "../../components/common/AppLoader";
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { Loader2, AudioLines } from 'lucide-react';
+import { AudioLines } from 'lucide-react';
 
 const ForgotPasswordPage = () => {
     const navigate = useNavigate();
@@ -69,7 +70,7 @@ const ForgotPasswordPage = () => {
                         {error && <p className="text-sm text-red-600 text-center mb-4">{error}</p>}
                         {successMessage && <p className="text-sm text-green-600 text-center mb-4">{successMessage}</p>}
                         <button type="submit" disabled={isLoading} className="w-full bg-black text-white py-3 rounded-md font-semibold hover:bg-gray-800 transition disabled:opacity-50 flex items-center justify-center">
-                            {isLoading && <Loader2 className="animate-spin mr-2 h-5 w-5" />}
+                            {isLoading && <AppLoader size="sm" />}
                             {isLoading ? "Sending Code..." : "Send Reset Code"}
                         </button>
                     </form>

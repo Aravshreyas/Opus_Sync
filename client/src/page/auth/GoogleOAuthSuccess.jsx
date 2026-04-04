@@ -1,9 +1,10 @@
+import AppLoader from "../../components/common/AppLoader";
 // src/pages/GoogleOAuthSuccess.jsx (or wherever your component is)
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { useAuth } from "../../context/auth-context"; // Adjust path as necessary
-import { AudioLines, Loader } from "lucide-react";
+import { AudioLines } from 'lucide-react';
 import Button from "../../components/ui/Button";
 
 function GoogleOAuthSuccess() {
@@ -81,7 +82,7 @@ function GoogleOAuthSuccess() {
           <div className="p-6 text-center">
             {isLoading && (
               <div className="mb-4 flex justify-center">
-                <Loader className="h-8 w-8 animate-spin text-primary" />
+                <AppLoader size="sm" />
               </div>
             )}
             <h1 className="font-semibold leading-none tracking-tight text-xl mb-2">

@@ -1,10 +1,11 @@
+import AppLoader from "../../common/AppLoader";
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 // Removed: import { Avatar, AvatarFallback, AvatarImage } from "../../../components/ui/avatar";
 import UserAvatar from "../../../components/common/UserAvatar"; // Assuming this is the path to your UserAvatar component
 import useWorkspaceId from "../../../hooks/useWorkspaceId";
 import axios from "axios";
-import { Loader } from "lucide-react";
+
 import { format } from "date-fns";
 
 const RecentProjects = ({ onProjectCreated }) => {
@@ -51,7 +52,7 @@ const RecentProjects = ({ onProjectCreated }) => {
   return (
     <div className="flex flex-col pt-2">
       {isPending ? (
-        <Loader className="w-8 h-8 animate-spin place-self-center" />
+        <AppLoader size="sm" />
       ) : error ? (
         <div className="font-semibold text-sm text-red-500 text-center py-5">{error}</div>
       ) : projects.length === 0 ? (

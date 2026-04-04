@@ -1,5 +1,6 @@
+import AppLoader from "./AppLoader";
 import React from "react";
-import { Activity, ArrowBigUp, ArrowBigDown, Loader } from "lucide-react";
+import { Activity, ArrowBigUp, ArrowBigDown } from 'lucide-react';
 
 const AnalyticsCard = ({ title, value, isLoading }) => {
   const getArrowIcon = () => {
@@ -30,7 +31,7 @@ const AnalyticsCard = ({ title, value, isLoading }) => {
         <Activity strokeWidth={2.5} className="h-4 w-4 text-gray-400" />
       </div>
       <div className="text-2xl font-bold mt-2">
-        {isLoading ? <Loader className="w-6 h-6 animate-spin" /> : value}
+        {isLoading ? <AppLoader size="sm" /> : value}
       </div>
     </div>
   );

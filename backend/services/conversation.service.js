@@ -1,9 +1,10 @@
 const Conversation = require('../models/conversation.model');
 const Message = require('../models/message.model');
 const mongoose = require('mongoose');
+const { BadRequestException } = require('../utils/appError');
 
-const getConversationsService = async (currentUserId) => {
-    const conversations = await Conversation.find({ participants: currentUserId })
+const getConversationsService = async (currentUserId, workspaceId) => {
+    const conversations = await Conversation.find({ participants: currentUserId, workspaceId: workspaceId })
         .populate({ path: 'participants', select: 'name profilePicture defaultProfilePictureUrl' })
         .populate({ path: 'lastMessage' }) // Populate the full last message to access its status
         .populate('workspaceId', 'name')
@@ -19,7 +20,7 @@ const getConversationsService = async (currentUserId) => {
             });
 
             const otherParticipant = convo.participants.find(p => p._id.toString() !== currentUserId.toString());
-            
+
             return {
                 ...convo.toObject(),
                 participants: undefined,

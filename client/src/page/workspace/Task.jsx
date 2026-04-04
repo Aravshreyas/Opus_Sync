@@ -4,6 +4,7 @@ import TaskTable from "../../components/workspace/task/TaskTable";
 import { Plus } from "lucide-react";
 import CreateTaskDialog from "../../components/workspace/task/CreateTaskDialog";
 import { useParams } from "react-router-dom";
+import AppLoader from "../../components/common/AppLoader";
 
 export default function Tasks() {
   const [workspace, setWorkspace] = useState(null);
@@ -48,7 +49,7 @@ export default function Tasks() {
   };
 
   if (loading) {
-    return <div className="w-full h-full flex-col space-y-8 pt-3 text-center">Loading...</div>;
+    return <AppLoader fullPage label="Loading tasks..." />;
   }
 
   return (
@@ -72,14 +73,14 @@ export default function Tasks() {
         </div>
       </div>
       <div>
-        <TaskTable tasks={tasks} workspaceId={workspaceId} projectId={null} onTaskProcessed={handleTaskProcessed} isDialogOpen={isDialogOpen}/>
+        <TaskTable tasks={tasks} workspaceId={workspaceId} projectId={null} onTaskProcessed={handleTaskProcessed} isDialogOpen={isDialogOpen} />
       </div>
 
       {isDialogOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <CreateTaskDialog 
-            onClose={() => setIsDialogOpen(false)} 
-            workspaceId={workspaceId} 
+          <CreateTaskDialog
+            onClose={() => setIsDialogOpen(false)}
+            workspaceId={workspaceId}
             onTaskProcessed={handleTaskProcessed}
           />
         </div>

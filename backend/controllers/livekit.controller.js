@@ -1,6 +1,6 @@
 const asyncHandler = require("../middlewares/asyncHandler.middleware");
 const { HTTPSTATUS } = require("../config/http.config");
-const { createLiveKitToken } = require("../services/livekit.service");
+const { createLiveKitToken, getLiveParticipantsService } = require("../services/livekit.service");
 const { BadRequestException } = require("../utils/appError");
 
 const getLiveKitTokenController = asyncHandler(async (req, res) => {
@@ -11,7 +11,7 @@ const getLiveKitTokenController = asyncHandler(async (req, res) => {
         throw new BadRequestException("Room name is required.");
     }
 
-    const token = createLiveKitToken({
+    const token = await createLiveKitToken({
         roomName: roomName,
         participantName: user.name,
     });
@@ -19,4 +19,9 @@ const getLiveKitTokenController = asyncHandler(async (req, res) => {
     return res.status(HTTPSTATUS.OK).json({ token });
 });
 
-module.exports = { getLiveKitTokenController };
+const getLiveParticipantsController = asyncHandler(async (req, res) => {
+    const { roomName } = req.params;
+    const { participants } = await getLiveParticipantsService(roomName);
+    return res.status(HTTPSTATUS.OK).json({ participants });
+});
+module.exports = { getLiveKitTokenController, getLiveParticipantsController };

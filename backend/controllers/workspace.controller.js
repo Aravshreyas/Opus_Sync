@@ -1,5 +1,5 @@
 // controllers/workspace.controller.js
-const  asyncHandler  = require("../middlewares/asyncHandler.middleware");
+const asyncHandler = require("../middlewares/asyncHandler.middleware");
 const { HTTPSTATUS } = require("../config/http.config");
 const {
     changeMemberRoleService,
@@ -19,15 +19,15 @@ const { BadRequestException } = require("../utils/appError");
 const createWorkspaceController = asyncHandler(async (req, res) => {
     let { name, description } = req.body;
 
-    
+
     if (!name) {
-        throw BadRequestException("Name is required");
+        throw new BadRequestException("Name is required");
     }
     if (name.length > 255) {
-        throw BadRequestException("Name must be 255 characters or less");
+        throw new BadRequestException("Name must be 255 characters or less");
     }
 
- 
+
 
     const userId = req.user ? req.user._id : null;
     const { workspace } = await createWorkspaceService(userId, { name, description });
@@ -51,9 +51,9 @@ const getAllWorkspacesUserIsMemberController = asyncHandler(async (req, res) => 
 const getWorkspaceByIdController = asyncHandler(async (req, res) => {
     let workspaceId = req.params.id;
 
-  
+
     if (!workspaceId) {
-        throw BadRequestException("Workspace ID is required");
+        throw new BadRequestException("Workspace ID is required");
     }
 
     const userId = req.user ? req.user._id : null;
@@ -72,7 +72,7 @@ const getWorkspaceMembersController = asyncHandler(async (req, res) => {
 
     // Validate workspaceId
     if (!workspaceId) {
-        throw BadRequestException("Workspace ID is required");
+        throw new BadRequestException("Workspace ID is required");
     }
 
     const userId = req.user ? req.user._id : null;
@@ -93,7 +93,7 @@ const getWorkspaceAnalyticsController = asyncHandler(async (req, res) => {
 
     // Validate workspaceId
     if (!workspaceId) {
-        throw BadRequestException("Workspace ID is required");
+        throw new BadRequestException("Workspace ID is required");
     }
 
     const userId = req.user ? req.user._id : null;
@@ -114,15 +114,15 @@ const changeWorkspaceMemberRoleController = asyncHandler(async (req, res) => {
 
     // Validate workspaceId
     if (!workspaceId) {
-        throw BadRequestException("Workspace ID is required");
+        throw new BadRequestException("Workspace ID is required");
     }
 
     // Validate changeRoleSchema
     if (!memberId) {
-        throw BadRequestException("Member ID is required");
+        throw new BadRequestException("Member ID is required");
     }
     if (!roleId) {
-        throw BadRequestException("Role ID is required");
+        throw new BadRequestException("Role ID is required");
     }
 
     const userId = req.user ? req.user._id : null;
@@ -143,15 +143,15 @@ const updateWorkspaceByIdController = asyncHandler(async (req, res) => {
 
     // Validate workspaceId
     if (!workspaceId) {
-        throw BadRequestException("Workspace ID is required");
+        throw new BadRequestException("Workspace ID is required");
     }
 
     // Validate name (nameSchema)
     if (!name) {
-        throw BadRequestException("Name is required");
+        throw new BadRequestException("Name is required");
     }
     if (name.length > 255) {
-        throw BadRequestException("Name must be 255 characters or less");
+        throw new BadRequestException("Name must be 255 characters or less");
     }
 
     // Validate description (descriptionSchema)
@@ -174,10 +174,10 @@ const deleteWorkspaceByIdController = asyncHandler(async (req, res) => {
 
     // Validate workspaceId
     if (!workspaceId) {
-        throw BadRequestException("Workspace ID is required");
+        throw new BadRequestException("Workspace ID is required");
     }
 
-    const userId = req.user?._id 
+    const userId = req.user?._id
     const { role } = await getMemberRoleInWorkspace(userId, workspaceId);
     console.log("role", role);
     roleGuard(role, [Permissions.DELETE_WORKSPACE]);

@@ -1,7 +1,6 @@
+import AppLoader from "../../common/AppLoader";
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
-import {
-  Loader,
-  CirclePlus,
+import { CirclePlus,
   ChevronDown,
   ChevronsUpDown,
   Ellipsis,
@@ -24,15 +23,15 @@ import {
   Pencil,
   Trash,
   X,
-  Eye,
-} from "lucide-react";
+  Eye } from 'lucide-react';
 import axios from "axios";
 import useWorkspaceId from "../../../hooks/useWorkspaceId";
 import CreateTaskDialog from "./CreateTaskDialog";
 import { useNavigate } from "react-router-dom";
 import UserAvatar from "../../../components/common/UserAvatar";
+import { useToast } from '../../../context/ToastContext';
 
-const TaskTable = ({ workspaceId: propWorkspaceId, projectId: propProjectId, onTaskUpdated,isDialogOpen }) => {
+const TaskTable = ({ workspaceId: propWorkspaceId, projectId: propProjectId, onTaskUpdated, isDialogOpen }) => {
   const [tasks, setTasks] = useState([]);
   const [filteredTasks, setFilteredTasks] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -70,6 +69,8 @@ const TaskTable = ({ workspaceId: propWorkspaceId, projectId: propProjectId, onT
   const [editingTask, setEditingTask] = useState(null);
 
   const navigate = useNavigate();
+  const { toast } = useToast();
+  const [confirmDeleteId, setConfirmDeleteId] = useState(null);
 
   useEffect(() => {
     setProjectId(propProjectId);
@@ -116,7 +117,7 @@ const TaskTable = ({ workspaceId: propWorkspaceId, projectId: propProjectId, onT
     setError(null);
     try {
       const endpoint = `${import.meta.env.VITE_BACKEND_URL}/task/workspace/${actualWorkspaceId}/all`;
-      const response = await axios.get(endpoint, 
+      const response = await axios.get(endpoint,
         // { withCredentials: true }
       );
       let fetchedTasks = response.data.tasks || [];
@@ -133,7 +134,7 @@ const TaskTable = ({ workspaceId: propWorkspaceId, projectId: propProjectId, onT
     } finally {
       setIsLoading(false);
     }
-  }, [actualWorkspaceId, propProjectId,isDialogOpen]);
+  }, [actualWorkspaceId, propProjectId, isDialogOpen]);
 
   useEffect(() => {
     fetchTasks();
@@ -284,16 +285,9 @@ const TaskTable = ({ workspaceId: propWorkspaceId, projectId: propProjectId, onT
   };
 
   const handleDelete = async (taskId) => {
-    const confirmDelete = window.confirm("Are you sure you want to delete this task?");
-    if (!confirmDelete) {
-      setActiveTaskMenu(null);
-      return;
-    }
-
     try {
       await axios.delete(
         `${import.meta.env.VITE_BACKEND_URL}/task/${taskId}/workspace/${actualWorkspaceId}/delete`,
-        // { withCredentials: true }
       );
       fetchTasks();
       setSelectedRows((prev) => {
@@ -301,15 +295,16 @@ const TaskTable = ({ workspaceId: propWorkspaceId, projectId: propProjectId, onT
         newSet.delete(taskId);
         return newSet;
       });
-      alert("Task deleted successfully");
+      toast.success('Task deleted', 'The task has been removed successfully.');
       if (onTaskUpdated) {
         onTaskUpdated();
       }
     } catch (err) {
       console.error("Error deleting task:", err);
-      alert("Failed to delete task: " + (err.response?.data?.message || err.message));
+      toast.error('Delete failed', err.response?.data?.message || err.message);
     } finally {
       setActiveTaskMenu(null);
+      setConfirmDeleteId(null);
     }
   };
 
@@ -325,7 +320,7 @@ const TaskTable = ({ workspaceId: propWorkspaceId, projectId: propProjectId, onT
   const handleView = (taskId, taskProjectId) => {
     if (!taskProjectId) {
       console.error("Project ID is undefined for this task. Cannot navigate.");
-      alert("Cannot view task: Project information is missing.");
+      toast.warning('Cannot view task', 'Project information is missing for this task.');
       setActiveTaskMenu(null);
       return;
     }
@@ -502,7 +497,7 @@ const TaskTable = ({ workspaceId: propWorkspaceId, projectId: propProjectId, onT
   if (isLoading && tasks.length === 0) {
     return (
       <div className="flex justify-center items-center h-64">
-        <Loader className="w-8 h-8 animate-spin text-blue-600" />
+        <AppLoader size="sm" />
       </div>
     );
   }
@@ -619,90 +614,90 @@ const TaskTable = ({ workspaceId: propWorkspaceId, projectId: propProjectId, onT
                 </div>
               )}
             </div>
-            
-              <div className="relative">
-                <button
-                  onClick={() => toggleDropdown("assignedTo")}
-                  className="inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium transition-colors border border-gray-300 bg-white hover:bg-gray-50 rounded-md px-3 text-xs h-9 w-full sm:w-auto"
-                >
-                  <CirclePlus className="h-4 w-4" />
-                  Assigned To
-                  {selectedAssignedTo.size > 0 && <span className="ml-1 px-1.5 py-0.5 text-xs rounded-full bg-blue-500 text-white">{selectedAssignedTo.size}</span>}
-                </button>
-                {activeDropdown === "assignedTo" && (
-                  <div className="absolute z-20 mt-1 flex flex-col w-full min-w-[220px] rounded-md bg-white text-gray-900 shadow-lg border border-gray-200">
-                    <div className="flex items-center border-b border-gray-200 px-3 py-2">
-                      <Search className="mr-2 h-4 w-4 text-gray-500" />
-                      <input
-                        className="flex w-full rounded-md bg-transparent text-sm outline-none placeholder:text-gray-400"
-                        placeholder="Filter Assignee"
-                        value={assignedToSearch}
-                        onChange={(e) => setAssignedToSearch(e.target.value)}
-                      />
-                    </div>
-                    <div className="max-h-[250px] overflow-y-auto p-1">
-                      {filteredAssignedToOptions.map((option) => (
-                        <div
-                          key={option.value}
-                          onClick={() => handleAssignedToSelect(option.value)}
-                          className={`relative flex gap-2 items-center rounded-sm px-2 py-1.5 text-sm cursor-pointer select-none ${selectedAssignedTo.has(option.value) ? "bg-blue-50 font-semibold" : "hover:bg-gray-100"}`}
-                        >
-                          <div
-                            className={`mr-2 flex h-4 w-4 items-center justify-center rounded-sm border ${selectedAssignedTo.has(option.value) ? 'border-blue-600 bg-blue-600' : 'border-gray-400'}`}
-                          >
-                            {selectedAssignedTo.has(option.value) && <Check className="h-3 w-3 text-white" />}
-                          </div>
-                          <option.icon className="mr-1 h-4 w-4 text-gray-500" />
-                          <span>{option.label}</span>
-                        </div>
-                      ))}
-                    </div>
+
+            <div className="relative">
+              <button
+                onClick={() => toggleDropdown("assignedTo")}
+                className="inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium transition-colors border border-gray-300 bg-white hover:bg-gray-50 rounded-md px-3 text-xs h-9 w-full sm:w-auto"
+              >
+                <CirclePlus className="h-4 w-4" />
+                Assigned To
+                {selectedAssignedTo.size > 0 && <span className="ml-1 px-1.5 py-0.5 text-xs rounded-full bg-blue-500 text-white">{selectedAssignedTo.size}</span>}
+              </button>
+              {activeDropdown === "assignedTo" && (
+                <div className="absolute z-20 mt-1 flex flex-col w-full min-w-[220px] rounded-md bg-white text-gray-900 shadow-lg border border-gray-200">
+                  <div className="flex items-center border-b border-gray-200 px-3 py-2">
+                    <Search className="mr-2 h-4 w-4 text-gray-500" />
+                    <input
+                      className="flex w-full rounded-md bg-transparent text-sm outline-none placeholder:text-gray-400"
+                      placeholder="Filter Assignee"
+                      value={assignedToSearch}
+                      onChange={(e) => setAssignedToSearch(e.target.value)}
+                    />
                   </div>
-                )}
-              </div>
-            
-           
-              <div className="relative">
-                <button
-                  onClick={() => toggleDropdown("projects")}
-                  className="inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium transition-colors border border-gray-300 bg-white hover:bg-gray-50 rounded-md px-3 text-xs h-9 w-full sm:w-auto"
-                >
-                  <CirclePlus className="h-4 w-4" />
-                  Projects
-                  {selectedProjects.size > 0 && <span className="ml-1 px-1.5 py-0.5 text-xs rounded-full bg-blue-500 text-white">{selectedProjects.size}</span>}
-                </button>
-                {activeDropdown === "projects" && (
-                  <div className="absolute z-20 mt-1 flex flex-col w-full min-w-[220px] rounded-md bg-white text-gray-900 shadow-lg border border-gray-200">
-                    <div className="flex items-center border-b border-gray-200 px-3 py-2">
-                      <Search className="mr-2 h-4 w-4 text-gray-500" />
-                      <input
-                        className="flex w-full rounded-md bg-transparent text-sm outline-none placeholder:text-gray-400"
-                        placeholder="Filter Project"
-                        value={projectSearch}
-                        onChange={(e) => setProjectSearch(e.target.value)}
-                      />
-                    </div>
-                    <div className="max-h-[250px] overflow-y-auto p-1">
-                      {filteredProjectOptions.map((option) => (
+                  <div className="max-h-[250px] overflow-y-auto p-1">
+                    {filteredAssignedToOptions.map((option) => (
+                      <div
+                        key={option.value}
+                        onClick={() => handleAssignedToSelect(option.value)}
+                        className={`relative flex gap-2 items-center rounded-sm px-2 py-1.5 text-sm cursor-pointer select-none ${selectedAssignedTo.has(option.value) ? "bg-blue-50 font-semibold" : "hover:bg-gray-100"}`}
+                      >
                         <div
-                          key={option.value}
-                          onClick={() => handleProjectSelect(option.value)}
-                          className={`relative flex gap-2 items-center rounded-sm px-2 py-1.5 text-sm cursor-pointer select-none ${selectedProjects.has(option.value) ? "bg-blue-50 font-semibold" : "hover:bg-gray-100"}`}
+                          className={`mr-2 flex h-4 w-4 items-center justify-center rounded-sm border ${selectedAssignedTo.has(option.value) ? 'border-blue-600 bg-blue-600' : 'border-gray-400'}`}
                         >
-                          <div
-                            className={`mr-2 flex h-4 w-4 items-center justify-center rounded-sm border ${selectedProjects.has(option.value) ? 'border-blue-600 bg-blue-600' : 'border-gray-400'}`}
-                          >
-                            {selectedProjects.has(option.value) && <Check className="h-3 w-3 text-white" />}
-                          </div>
-                          <option.icon className="mr-1 h-4 w-4 text-gray-500" />
-                          <span>{option.label}</span>
+                          {selectedAssignedTo.has(option.value) && <Check className="h-3 w-3 text-white" />}
                         </div>
-                      ))}
-                    </div>
+                        <option.icon className="mr-1 h-4 w-4 text-gray-500" />
+                        <span>{option.label}</span>
+                      </div>
+                    ))}
                   </div>
-                )}
-              </div>
-            
+                </div>
+              )}
+            </div>
+
+
+            <div className="relative">
+              <button
+                onClick={() => toggleDropdown("projects")}
+                className="inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium transition-colors border border-gray-300 bg-white hover:bg-gray-50 rounded-md px-3 text-xs h-9 w-full sm:w-auto"
+              >
+                <CirclePlus className="h-4 w-4" />
+                Projects
+                {selectedProjects.size > 0 && <span className="ml-1 px-1.5 py-0.5 text-xs rounded-full bg-blue-500 text-white">{selectedProjects.size}</span>}
+              </button>
+              {activeDropdown === "projects" && (
+                <div className="absolute z-20 mt-1 flex flex-col w-full min-w-[220px] rounded-md bg-white text-gray-900 shadow-lg border border-gray-200">
+                  <div className="flex items-center border-b border-gray-200 px-3 py-2">
+                    <Search className="mr-2 h-4 w-4 text-gray-500" />
+                    <input
+                      className="flex w-full rounded-md bg-transparent text-sm outline-none placeholder:text-gray-400"
+                      placeholder="Filter Project"
+                      value={projectSearch}
+                      onChange={(e) => setProjectSearch(e.target.value)}
+                    />
+                  </div>
+                  <div className="max-h-[250px] overflow-y-auto p-1">
+                    {filteredProjectOptions.map((option) => (
+                      <div
+                        key={option.value}
+                        onClick={() => handleProjectSelect(option.value)}
+                        className={`relative flex gap-2 items-center rounded-sm px-2 py-1.5 text-sm cursor-pointer select-none ${selectedProjects.has(option.value) ? "bg-blue-50 font-semibold" : "hover:bg-gray-100"}`}
+                      >
+                        <div
+                          className={`mr-2 flex h-4 w-4 items-center justify-center rounded-sm border ${selectedProjects.has(option.value) ? 'border-blue-600 bg-blue-600' : 'border-gray-400'}`}
+                        >
+                          {selectedProjects.has(option.value) && <Check className="h-3 w-3 text-white" />}
+                        </div>
+                        <option.icon className="mr-1 h-4 w-4 text-gray-500" />
+                        <span>{option.label}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
           </div>
         </div>
         <div className="relative columns-dropdown-button">
@@ -988,11 +983,10 @@ const TaskTable = ({ workspaceId: propWorkspaceId, projectId: propProjectId, onT
               {getPageNumbers().map((pageNum) => (
                 <button
                   key={pageNum}
-                  className={`flex items-center justify-center rounded-md text-sm font-medium transition-colors border border-gray-300 h-9 w-9 p-0 ${
-                    currentPage === pageNum
+                  className={`flex items-center justify-center rounded-md text-sm font-medium transition-colors border border-gray-300 h-9 w-9 p-0 ${currentPage === pageNum
                       ? "bg-blue-600 text-white border-blue-600"
                       : "bg-white hover:bg-gray-50"
-                  }`}
+                    }`}
                   onClick={() => handlePageChange(pageNum)}
                   aria-label={`Page ${pageNum}`}
                   aria-current={currentPage === pageNum ? "page" : undefined}

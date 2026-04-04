@@ -1,12 +1,15 @@
+import AppLoader from "../common/AppLoader";
 import React, { useState } from 'react';
-import { Loader2, X } from 'lucide-react';
+import { X } from 'lucide-react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { useToast } from '../../context/ToastContext';
 
 const InstantMeetingModal = ({ isOpen, onClose }) => {
     const [title, setTitle] = useState("Instant Meeting");
     const [isLoading, setIsLoading] = useState(false);
     const navigate = useNavigate();
+    const { toast } = useToast();
 
     if (!isOpen) return null;
 
@@ -27,7 +30,7 @@ const InstantMeetingModal = ({ isOpen, onClose }) => {
             }
         } catch (err) {
             console.error("Failed to create instant meeting:", err);
-            alert("Could not start instant meeting.");
+            toast.error('Meeting failed', 'Could not start instant meeting.');
             setIsLoading(false);
         }
     };
@@ -46,7 +49,7 @@ const InstantMeetingModal = ({ isOpen, onClose }) => {
                 <div className="flex justify-end gap-3">
                     <button type="button" onClick={onClose} className="px-4 py-2 text-sm font-medium bg-white border border-slate-300 rounded-md hover:bg-slate-50">Cancel</button>
                     <button type="submit" disabled={isLoading} className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700 disabled:opacity-50 flex items-center">
-                        {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}
+                        {isLoading && <AppLoader size="sm" />}
                         Start Meeting
                     </button>
                 </div>

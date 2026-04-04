@@ -1,3 +1,4 @@
+import AppLoader from "../../common/AppLoader";
 import { useState, useEffect } from "react";
 // Removed: import { Avatar, AvatarFallback, AvatarImage } from "../../ui/avatar";
 import useWorkspaceId from "../../../hooks/useWorkspaceId";
@@ -5,7 +6,7 @@ import axios from "axios";
 // Removed: import { getAvatarColor, getAvatarFallbackText } from "../../../lib/helper";
 import UserAvatar from "../../common/UserAvatar"; // Adjusted path for UserAvatar
 import { format } from "date-fns";
-import { Loader } from "lucide-react";
+
 
 const RecentMembers = () => {
   const workspaceId = useWorkspaceId();
@@ -45,7 +46,7 @@ const RecentMembers = () => {
   return (
     <div className="flex flex-col pt-2">
       {isPending ? (
-        <Loader className="w-8 h-8 animate-spin place-self-center" />
+        <AppLoader size="sm" />
       ) : error ? (
         <div className="font-semibold text-sm text-red-500 text-center py-5">{error}</div>
       ) : members.length === 0 ? (
